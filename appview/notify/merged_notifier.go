@@ -93,3 +93,7 @@ func (m *mergedNotifier) EditString(ctx context.Context, s *models.String) {
 func (m *mergedNotifier) DeleteString(ctx context.Context, did, rkey string) {
 	m.fanout(func(n Notifier) { n.DeleteString(ctx, did, rkey) })
 }
+
+func (m *mergedNotifier) Push(ctx context.Context, repo *models.Repo, ref, oldSha, newSha, committerDid string) {
+	m.fanout(func(n Notifier) { n.Push(ctx, repo, ref, oldSha, newSha, committerDid) })
+}

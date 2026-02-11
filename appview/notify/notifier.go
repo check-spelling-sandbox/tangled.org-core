@@ -30,6 +30,8 @@ type Notifier interface {
 	NewString(ctx context.Context, s *models.String)
 	EditString(ctx context.Context, s *models.String)
 	DeleteString(ctx context.Context, did, rkey string)
+
+	Push(ctx context.Context, repo *models.Repo, ref, oldSha, newSha, committerDid string)
 }
 
 // BaseNotifier is a listener that does nothing
@@ -61,3 +63,6 @@ func (m *BaseNotifier) UpdateProfile(ctx context.Context, profile *models.Profil
 func (m *BaseNotifier) NewString(ctx context.Context, s *models.String)    {}
 func (m *BaseNotifier) EditString(ctx context.Context, s *models.String)   {}
 func (m *BaseNotifier) DeleteString(ctx context.Context, did, rkey string) {}
+
+func (m *BaseNotifier) Push(ctx context.Context, repo *models.Repo, ref, oldSha, newSha, committerDid string) {
+}

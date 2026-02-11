@@ -103,3 +103,8 @@ func (l *loggingNotifier) DeleteString(ctx context.Context, did, rkey string) {
 	ctx = tlog.IntoContext(ctx, tlog.SubLogger(l.logger, "DeleteString"))
 	l.inner.DeleteString(ctx, did, rkey)
 }
+
+func (l *loggingNotifier) Push(ctx context.Context, repo *models.Repo, ref, oldSha, newSha, committerDid string) {
+	ctx = tlog.IntoContext(ctx, tlog.SubLogger(l.logger, "Push"))
+	l.inner.Push(ctx, repo, ref, oldSha, newSha, committerDid)
+}
