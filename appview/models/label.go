@@ -291,16 +291,35 @@ type set = map[string]struct{}
 
 type LabelState struct {
 	inner map[string]set
+	names map[string]string
 }
 
 func NewLabelState() LabelState {
 	return LabelState{
 		inner: make(map[string]set),
+		names: make(map[string]string),
 	}
+}
+
+func (s LabelState) LabelNames() []string {
+	var result []string
+	for key, valset := range s.inner {
+		if valset == nil {
+			continue
+		}
+		if name, ok := s.names[key]; ok {
+			result = append(result, name)
+		}
+	}
+	return result
 }
 
 func (s LabelState) Inner() map[string]set {
 	return s.inner
+}
+
+func (s LabelState) SetName(key, name string) {
+	s.names[key] = name
 }
 
 func (s LabelState) ContainsLabel(l string) bool {
@@ -347,6 +366,8 @@ func (c *LabelApplicationCtx) ApplyLabelOp(state LabelState, op LabelOp) error {
 		// this def was deleted, but an op exists, so we just skip over the op
 		return nil
 	}
+
+	state.names[op.OperandKey] = def.Name
 
 	switch op.Operation {
 	case LabelOperationAdd:
