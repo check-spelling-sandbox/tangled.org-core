@@ -8,6 +8,8 @@ import (
 	"slices"
 	"time"
 
+	"tangled.org/core/appview/notify"
+
 	"tangled.org/core/api/tangled"
 	"tangled.org/core/appview/cache"
 	"tangled.org/core/appview/config"
@@ -25,7 +27,7 @@ import (
 	"github.com/posthog/posthog-go"
 )
 
-func Knotstream(ctx context.Context, c *config.Config, d *db.DB, enforcer *rbac.Enforcer, posthog posthog.Client) (*ec.Consumer, error) {
+func Knotstream(ctx context.Context, c *config.Config, d *db.DB, enforcer *rbac.Enforcer, posthog posthog.Client, notifier notify.Notifier) (*ec.Consumer, error) {
 	logger := log.FromContext(ctx)
 	logger = log.SubLogger(logger, "knotstream")
 
@@ -48,7 +50,7 @@ func Knotstream(ctx context.Context, c *config.Config, d *db.DB, enforcer *rbac.
 
 	cfg := ec.ConsumerConfig{
 		Sources:           srcs,
-		ProcessFunc:       knotIngester(d, enforcer, posthog, c.Core.Dev),
+		ProcessFunc:       knotIngester(d, enforcer, posthog, notifier, c.Core.Dev),
 		RetryInterval:     c.Knotstream.RetryInterval,
 		MaxRetryInterval:  c.Knotstream.MaxRetryInterval,
 		ConnectionTimeout: c.Knotstream.ConnectionTimeout,
@@ -62,11 +64,11 @@ func Knotstream(ctx context.Context, c *config.Config, d *db.DB, enforcer *rbac.
 	return ec.NewConsumer(cfg), nil
 }
 
-func knotIngester(d *db.DB, enforcer *rbac.Enforcer, posthog posthog.Client, dev bool) ec.ProcessFunc {
+func knotIngester(d *db.DB, enforcer *rbac.Enforcer, posthog posthog.Client, notifier notify.Notifier, dev bool) ec.ProcessFunc {
 	return func(ctx context.Context, source ec.Source, msg ec.Message) error {
 		switch msg.Nsid {
 		case tangled.GitRefUpdateNSID:
-			return ingestRefUpdate(d, enforcer, posthog, dev, source, msg)
+			return ingestRefUpdate(d, enforcer, posthog, notifier, dev, source, msg, ctx)
 		case tangled.PipelineNSID:
 			return ingestPipeline(d, source, msg)
 		}
@@ -75,7 +77,9 @@ func knotIngester(d *db.DB, enforcer *rbac.Enforcer, posthog posthog.Client, dev
 	}
 }
 
-func ingestRefUpdate(d *db.DB, enforcer *rbac.Enforcer, pc posthog.Client, dev bool, source ec.Source, msg ec.Message) error {
+func ingestRefUpdate(d *db.DB, enforcer *rbac.Enforcer, pc posthog.Client, notifier notify.Notifier, dev bool, source ec.Source, msg ec.Message, ctx context.Context) error {
+	logger := log.FromContext(ctx)
+
 	var record tangled.GitRefUpdate
 	err := json.Unmarshal(msg.EventJson, &record)
 	if err != nil {
@@ -90,21 +94,48 @@ func ingestRefUpdate(d *db.DB, enforcer *rbac.Enforcer, pc posthog.Client, dev b
 		return fmt.Errorf("%s does not belong to %s, something is fishy", record.CommitterDid, source.Key())
 	}
 
-	err1 := populatePunchcard(d, record)
-	err2 := updateRepoLanguages(d, record)
+	logger.Info("processing gitRefUpdate event",
+		"repo_did", record.RepoDid,
+		"repo_name", record.RepoName,
+		"ref", record.Ref,
+		"old_sha", record.OldSha,
+		"new_sha", record.NewSha)
 
-	var err3 error
-	if !dev {
-		err3 = pc.Enqueue(posthog.Capture{
+	// trigger webhook notifications first (before other ops that might fail)
+	var errWebhook error
+	repos, err := db.GetRepos(
+		d,
+		0,
+		orm.FilterEq("did", record.RepoDid),
+		orm.FilterEq("name", record.RepoName),
+	)
+	if err != nil {
+		errWebhook = fmt.Errorf("failed to lookup repo for webhooks: %w", err)
+	} else if len(repos) == 1 {
+		notifier.Push(ctx, &repos[0], record.Ref, record.OldSha, record.NewSha, record.CommitterDid)
+	} else if len(repos) == 0 {
+		errWebhook = fmt.Errorf("no repo found for webhooks: %s/%s", record.RepoDid, record.RepoName)
+	}
+
+	errPunchcard := populatePunchcard(d, record)
+	errLanguages := updateRepoLanguages(d, record)
+
+	var errPosthog error
+	if !dev && record.CommitterDid != "" {
+		errPosthog = pc.Enqueue(posthog.Capture{
 			DistinctId: record.CommitterDid,
 			Event:      "git_ref_update",
 		})
 	}
 
-	return errors.Join(err1, err2, err3)
+	return errors.Join(errWebhook, errPunchcard, errLanguages, errPosthog)
 }
 
 func populatePunchcard(d *db.DB, record tangled.GitRefUpdate) error {
+	if record.CommitterDid == "" {
+		return nil
+	}
+
 	knownEmails, err := db.GetAllEmails(d, record.CommitterDid)
 	if err != nil {
 		return err

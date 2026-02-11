@@ -151,18 +151,6 @@ func Make(ctx context.Context, config *config.Config) (*State, error) {
 		return nil, fmt.Errorf("failed to start jetstream watcher: %w", err)
 	}
 
-	knotstream, err := Knotstream(ctx, config, d, enforcer, posthog)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start knotstream consumer: %w", err)
-	}
-	knotstream.Start(ctx)
-
-	spindlestream, err := Spindlestream(ctx, config, d, enforcer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to start spindlestream consumer: %w", err)
-	}
-	spindlestream.Start(ctx)
-
 	var notifiers []notify.Notifier
 
 	// Always add the database notifier
@@ -173,8 +161,24 @@ func Make(ctx context.Context, config *config.Config) (*State, error) {
 		notifiers = append(notifiers, phnotify.NewPosthogNotifier(posthog))
 	}
 	notifiers = append(notifiers, indexer)
+
+	// Add webhook notifier
+	notifiers = append(notifiers, notify.NewWebhookNotifier(d))
+
 	notifier := notify.NewMergedNotifier(notifiers)
 	notifier = notify.NewLoggingNotifier(notifier, tlog.SubLogger(logger, "notify"))
+
+	knotstream, err := Knotstream(ctx, config, d, enforcer, posthog, notifier)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start knotstream consumer: %w", err)
+	}
+	knotstream.Start(ctx)
+
+	spindlestream, err := Spindlestream(ctx, config, d, enforcer)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start spindlestream consumer: %w", err)
+	}
+	spindlestream.Start(ctx)
 
 	state := &State{
 		d,
