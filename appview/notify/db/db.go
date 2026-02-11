@@ -379,7 +379,7 @@ func (n *databaseNotifier) NewIssueState(ctx context.Context, actor syntax.DID, 
 		recipients.Insert(syntax.DID(p))
 	}
 
-	entityType := "pull"
+	entityType := "issue"
 	entityId := issue.AtUri().String()
 	repoId := &issue.Repo.Id
 	issueId := &issue.Id
