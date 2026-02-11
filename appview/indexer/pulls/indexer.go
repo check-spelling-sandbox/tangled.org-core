@@ -28,6 +28,9 @@ const (
 	pullIndexerDocType  = "pullIndexerDocType"
 
 	unicodeNormalizeName = "uicodeNormalize"
+
+	// Bump this when the index mapping changes to trigger a rebuild.
+	pullIndexerVersion = 2
 )
 
 type Indexer struct {
@@ -113,7 +116,7 @@ func (ix *Indexer) intialize(ctx context.Context) (bool, error) {
 		return false, errors.New("indexer is already initialized")
 	}
 
-	indexer, err := openIndexer(ctx, ix.path)
+	indexer, err := openIndexer(ctx, ix.path, pullIndexerVersion)
 	if err != nil {
 		return false, err
 	}
@@ -130,13 +133,14 @@ func (ix *Indexer) intialize(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	indexer.SetInternal([]byte("mapping_version"), []byte{byte(pullIndexerVersion)})
 
 	ix.indexer = indexer
 
 	return false, nil
 }
 
-func openIndexer(ctx context.Context, path string) (bleve.Index, error) {
+func openIndexer(ctx context.Context, path string, version int) (bleve.Index, error) {
 	l := tlog.FromContext(ctx)
 	indexer, err := bleve.Open(path)
 	if err != nil {
@@ -146,6 +150,14 @@ func openIndexer(ctx context.Context, path string) (bleve.Index, error) {
 		}
 		return nil, nil
 	}
+
+	storedVersion, _ := indexer.GetInternal([]byte("mapping_version"))
+	if storedVersion == nil || int(storedVersion[0]) != version {
+		l.Info("Indexer mapping version changed, deleting and rebuilding")
+		indexer.Close()
+		return nil, os.RemoveAll(path)
+	}
+
 	return indexer, nil
 }
 
