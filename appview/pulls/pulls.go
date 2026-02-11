@@ -643,6 +643,26 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 		totalPulls = int(res.Total)
 		l.Debug("searched pulls with indexer", "count", len(res.Hits))
 
+		// update tab counts to reflect filtered results
+		countOpts := searchOpts
+		countOpts.Page = pagination.Page{Limit: 1}
+		for _, ps := range []models.PullState{models.PullOpen, models.PullMerged, models.PullClosed} {
+			ps := ps
+			countOpts.State = &ps
+			countRes, err := s.indexer.Search(r.Context(), countOpts)
+			if err != nil {
+				continue
+			}
+			switch ps {
+			case models.PullOpen:
+				repoInfo.Stats.PullCount.Open = int(countRes.Total)
+			case models.PullMerged:
+				repoInfo.Stats.PullCount.Merged = int(countRes.Total)
+			case models.PullClosed:
+				repoInfo.Stats.PullCount.Closed = int(countRes.Total)
+			}
+		}
+
 		if len(res.Hits) > 0 {
 			pulls, err = db.GetPulls(
 				s.db,

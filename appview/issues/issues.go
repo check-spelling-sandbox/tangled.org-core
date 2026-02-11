@@ -892,6 +892,8 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		totalIssues = f.RepoStats.IssueCount.Closed
 	}
 
+	repoInfo := rp.repoResolver.GetRepoInfo(r, user)
+
 	var issues []models.Issue
 
 	if searchOpts.HasSearchFilters() {
@@ -902,6 +904,18 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		}
 		l.Debug("searched issues with indexer", "count", len(res.Hits))
 		totalIssues = int(res.Total)
+
+		// update tab counts to reflect filtered results
+		countOpts := searchOpts
+		countOpts.Page = pagination.Page{Limit: 1}
+		countOpts.IsOpen = ptrBool(true)
+		if openRes, err := rp.indexer.Search(r.Context(), countOpts); err == nil {
+			repoInfo.Stats.IssueCount.Open = int(openRes.Total)
+		}
+		countOpts.IsOpen = ptrBool(false)
+		if closedRes, err := rp.indexer.Search(r.Context(), countOpts); err == nil {
+			repoInfo.Stats.IssueCount.Closed = int(closedRes.Total)
+		}
 
 		if len(res.Hits) > 0 {
 			issues, err = db.GetIssues(
@@ -964,7 +978,7 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 
 	rp.pages.RepoIssues(w, pages.RepoIssuesParams{
 		LoggedInUser: rp.oauth.GetMultiAccountUser(r),
-		RepoInfo:     rp.repoResolver.GetRepoInfo(r, user),
+		RepoInfo:     repoInfo,
 		Issues:       issues,
 		IssueCount:   totalIssues,
 		LabelDefs:    defs,
