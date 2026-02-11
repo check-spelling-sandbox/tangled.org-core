@@ -568,6 +568,34 @@ func Make(ctx context.Context, dbPath string) (*DB, error) {
 			unique (from_at, to_at)
 		);
 
+		create table if not exists webhooks (
+			id integer primary key autoincrement,
+			repo_at text not null,
+			url text not null,
+			secret text,
+			active integer not null default 1,
+			events text not null, -- comma-separated list of events
+			created_at text not null default (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+			updated_at text not null default (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+
+			foreign key (repo_at) references repos(at_uri) on delete cascade
+		);
+
+		create table if not exists webhook_deliveries (
+			id integer primary key autoincrement,
+			webhook_id integer not null,
+			event text not null,
+			delivery_id text not null,
+			url text not null,
+			request_body text not null,
+			response_code integer,
+			response_body text,
+			success integer not null default 0,
+			created_at text not null default (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+
+			foreign key (webhook_id) references webhooks(id) on delete cascade
+		);
+
 		create table if not exists migrations (
 			id integer primary key autoincrement,
 			name text unique
@@ -578,6 +606,8 @@ func Make(ctx context.Context, dbPath string) (*DB, error) {
 		create index if not exists idx_notifications_recipient_read on notifications(recipient_did, read);
 		create index if not exists idx_references_from_at on reference_links(from_at);
 		create index if not exists idx_references_to_at on reference_links(to_at);
+		create index if not exists idx_webhooks_repo_at on webhooks(repo_at);
+		create index if not exists idx_webhook_deliveries_webhook_id on webhook_deliveries(webhook_id);
 	`)
 	if err != nil {
 		return nil, err
