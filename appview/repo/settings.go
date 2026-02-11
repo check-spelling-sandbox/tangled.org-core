@@ -167,6 +167,9 @@ func (rp *Repo) Settings(w http.ResponseWriter, r *http.Request) {
 
 	case "pipelines":
 		rp.pipelineSettings(w, r)
+
+	case "hooks":
+		rp.Webhooks(w, r)
 	}
 }
 
