@@ -27,6 +27,7 @@ import (
 	"tangled.org/core/appview/pages/repoinfo"
 	"tangled.org/core/appview/pagination"
 	"tangled.org/core/appview/reporesolver"
+	"tangled.org/core/appview/searchquery"
 	"tangled.org/core/appview/validator"
 	"tangled.org/core/idresolver"
 	"tangled.org/core/orm"
@@ -793,17 +794,6 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 	l := rp.logger.With("handler", "RepoIssues")
 
 	params := r.URL.Query()
-	state := params.Get("state")
-	isOpen := true
-	switch state {
-	case "open":
-		isOpen = true
-	case "closed":
-		isOpen = false
-	default:
-		isOpen = true
-	}
-
 	page := pagination.FromContext(r.Context())
 
 	user := rp.oauth.GetMultiAccountUser(r)
@@ -813,25 +803,98 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	query := searchquery.Parse(params.Get("q"))
+
+	var isOpen *bool
+	if urlState := params.Get("state"); urlState != "" {
+		switch urlState {
+		case "open":
+			isOpen = ptrBool(true)
+		case "closed":
+			isOpen = ptrBool(false)
+		}
+		query.Set("state", urlState)
+	} else if queryState := query.Get("state"); queryState != nil {
+		switch *queryState {
+		case "open":
+			isOpen = ptrBool(true)
+		case "closed":
+			isOpen = ptrBool(false)
+		}
+	} else if _, hasQ := params["q"]; !hasQ {
+		// no q param at all -- default to open
+		isOpen = ptrBool(true)
+		query.Set("state", "open")
+	}
+
+	var authorDid string
+	if authorHandle := query.Get("author"); authorHandle != nil {
+		identity, err := rp.idResolver.ResolveIdent(r.Context(), *authorHandle)
+		if err != nil {
+			l.Debug("failed to resolve author handle", "handle", *authorHandle, "err", err)
+		} else {
+			authorDid = identity.DID.String()
+		}
+	}
+
+	var negatedAuthorDid string
+	if negatedAuthors := query.GetAllNegated("author"); len(negatedAuthors) > 0 {
+		identity, err := rp.idResolver.ResolveIdent(r.Context(), negatedAuthors[0])
+		if err != nil {
+			l.Debug("failed to resolve negated author handle", "handle", negatedAuthors[0], "err", err)
+		} else {
+			negatedAuthorDid = identity.DID.String()
+		}
+	}
+
+	labels := query.GetAll("label")
+	negatedLabels := query.GetAllNegated("label")
+
+	var keywords, negatedKeywords []string
+	var phrases, negatedPhrases []string
+	for _, item := range query.Items() {
+		switch item.Kind {
+		case searchquery.KindKeyword:
+			if item.Negated {
+				negatedKeywords = append(negatedKeywords, item.Value)
+			} else {
+				keywords = append(keywords, item.Value)
+			}
+		case searchquery.KindQuoted:
+			if item.Negated {
+				negatedPhrases = append(negatedPhrases, item.Value)
+			} else {
+				phrases = append(phrases, item.Value)
+			}
+		}
+	}
+
+	searchOpts := models.IssueSearchOptions{
+		Keywords:         keywords,
+		Phrases:          phrases,
+		RepoAt:           f.RepoAt().String(),
+		IsOpen:           isOpen,
+		AuthorDid:        authorDid,
+		Labels:           labels,
+		NegatedKeywords:  negatedKeywords,
+		NegatedPhrases:   negatedPhrases,
+		NegatedLabels:    negatedLabels,
+		NegatedAuthorDid: negatedAuthorDid,
+		Page:             page,
+	}
+
 	totalIssues := 0
-	if isOpen {
+	if isOpen == nil {
+		totalIssues = f.RepoStats.IssueCount.Open + f.RepoStats.IssueCount.Closed
+	} else if *isOpen {
 		totalIssues = f.RepoStats.IssueCount.Open
 	} else {
 		totalIssues = f.RepoStats.IssueCount.Closed
 	}
 
-	keyword := params.Get("q")
-
-	repoInfo := rp.repoResolver.GetRepoInfo(r, user)
-
 	var issues []models.Issue
-	searchOpts := models.IssueSearchOptions{
-		Keyword: keyword,
-		RepoAt:  f.RepoAt().String(),
-		IsOpen:  isOpen,
-		Page:    page,
-	}
-	if keyword != "" {
+
+	if searchOpts.HasSearchFilters() {
 		res, err := rp.indexer.Search(r.Context(), searchOpts)
 		if err != nil {
 			l.Error("failed to search for issues", "err", err)
@@ -840,41 +903,32 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		l.Debug("searched issues with indexer", "count", len(res.Hits))
 		totalIssues = int(res.Total)
 
-		// count matching issues in the opposite state to display correct counts
-		countRes, err := rp.indexer.Search(r.Context(), models.IssueSearchOptions{
-			Keyword: keyword, RepoAt: f.RepoAt().String(), IsOpen: !isOpen,
-			Page: pagination.Page{Limit: 1},
-		})
-		if err == nil {
-			if isOpen {
-				repoInfo.Stats.IssueCount.Open = int(res.Total)
-				repoInfo.Stats.IssueCount.Closed = int(countRes.Total)
-			} else {
-				repoInfo.Stats.IssueCount.Closed = int(res.Total)
-				repoInfo.Stats.IssueCount.Open = int(countRes.Total)
+		if len(res.Hits) > 0 {
+			issues, err = db.GetIssues(
+				rp.db,
+				orm.FilterIn("id", res.Hits),
+			)
+			if err != nil {
+				l.Error("failed to get issues", "err", err)
+				rp.pages.Notice(w, "issues", "Failed to load issues. Try again later.")
+				return
 			}
 		}
-
-		issues, err = db.GetIssues(
-			rp.db,
-			orm.FilterIn("id", res.Hits),
-		)
-		if err != nil {
-			l.Error("failed to get issues", "err", err)
-			rp.pages.Notice(w, "issues", "Failed to load issues. Try again later.")
-			return
-		}
-
 	} else {
-		openInt := 0
-		if isOpen {
-			openInt = 1
+		filters := []orm.Filter{
+			orm.FilterEq("repo_at", f.RepoAt()),
+		}
+		if isOpen != nil {
+			openInt := 0
+			if *isOpen {
+				openInt = 1
+			}
+			filters = append(filters, orm.FilterEq("open", openInt))
 		}
 		issues, err = db.GetIssuesPaginated(
 			rp.db,
 			page,
-			orm.FilterEq("repo_at", f.RepoAt()),
-			orm.FilterEq("open", openInt),
+			filters...,
 		)
 		if err != nil {
 			l.Error("failed to get issues", "err", err)
@@ -899,17 +953,28 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		defs[l.AtUri().String()] = &l
 	}
 
+	filterState := ""
+	if isOpen != nil {
+		if *isOpen {
+			filterState = "open"
+		} else {
+			filterState = "closed"
+		}
+	}
+
 	rp.pages.RepoIssues(w, pages.RepoIssuesParams{
-		LoggedInUser:    rp.oauth.GetMultiAccountUser(r),
-		RepoInfo:        repoInfo,
-		Issues:          issues,
-		IssueCount:      totalIssues,
-		LabelDefs:       defs,
-		FilteringByOpen: isOpen,
-		FilterQuery:     keyword,
-		Page:            page,
+		LoggedInUser: rp.oauth.GetMultiAccountUser(r),
+		RepoInfo:     rp.repoResolver.GetRepoInfo(r, user),
+		Issues:       issues,
+		IssueCount:   totalIssues,
+		LabelDefs:    defs,
+		FilterState:  filterState,
+		FilterQuery:  query.String(),
+		Page:         page,
 	})
 }
+
+func ptrBool(b bool) *bool { return &b }
 
 func (rp *Issues) NewIssue(w http.ResponseWriter, r *http.Request) {
 	l := rp.logger.With("handler", "NewIssue")

@@ -3,11 +3,33 @@
   {{ $all := .Values }}
   {{ $active := .Active }}
   {{ $include := .Include }}
+  {{ $form := .Form }}
   <div class="flex justify-between divide-x divide-gray-200 dark:divide-gray-700 rounded border border-gray-200 dark:border-gray-700 overflow-hidden">
     {{ $activeTab := "bg-white dark:bg-gray-700 shadow-sm" }}
     {{ $inactiveTab := "bg-gray-100 dark:bg-gray-800 shadow-inner" }}
     {{ range $index, $value := $all }}
       {{ $isActive := eq $value.Key $active }}
+      {{ if $form }}
+      <button type="submit"
+         form="{{ $form }}"
+         name="{{ $name }}" value="{{ $value.Key }}"
+         hx-get="?{{ $name }}={{ $value.Key }}"
+         hx-include="{{ $include }}"
+         hx-push-url="true"
+         hx-target="body"
+         hx-on:htmx:config-request="if(!event.detail.parameters.q) delete event.detail.parameters.q"
+         class="p-2 whitespace-nowrap flex justify-center items-center gap-2 text-sm w-full hover:no-underline text-center {{ if $isActive }} {{$activeTab }} {{ else }} {{ $inactiveTab }} {{ end }}">
+       {{ if $value.Icon }}
+         {{ i $value.Icon "size-4" }}
+       {{ end }}
+
+       {{ with $value.Meta }}
+         {{ . }}
+       {{ end }}
+
+       {{ $value.Value }}
+      </button>
+      {{ else }}
       <a href="?{{ $name }}={{ $value.Key }}"
          {{ if $include }}
          hx-get="?{{ $name }}={{ $value.Key }}"
@@ -27,7 +49,7 @@
 
        {{ $value.Value }}
       </a>
+      {{ end }}
     {{ end }}
   </div>
 {{ end }}
-

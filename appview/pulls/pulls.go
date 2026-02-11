@@ -31,6 +31,7 @@ import (
 	"tangled.org/core/appview/pages/repoinfo"
 	"tangled.org/core/appview/pagination"
 	"tangled.org/core/appview/reporesolver"
+	"tangled.org/core/appview/searchquery"
 	"tangled.org/core/appview/validator"
 	"tangled.org/core/appview/xrpcclient"
 	"tangled.org/core/idresolver"
@@ -524,15 +525,6 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 
 	user := s.oauth.GetMultiAccountUser(r)
 	params := r.URL.Query()
-
-	state := models.PullOpen
-	switch params.Get("state") {
-	case "closed":
-		state = models.PullClosed
-	case "merged":
-		state = models.PullMerged
-	}
-
 	page := pagination.FromContext(r.Context())
 
 	f, err := s.repoResolver.Resolve(r)
@@ -541,29 +533,108 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var totalPulls int
-	switch state {
-	case models.PullOpen:
-		totalPulls = f.RepoStats.PullCount.Open
-	case models.PullMerged:
-		totalPulls = f.RepoStats.PullCount.Merged
-	case models.PullClosed:
-		totalPulls = f.RepoStats.PullCount.Closed
+	query := searchquery.Parse(params.Get("q"))
+
+	var state *models.PullState
+	if urlState := params.Get("state"); urlState != "" {
+		switch urlState {
+		case "open":
+			state = ptrPullState(models.PullOpen)
+		case "closed":
+			state = ptrPullState(models.PullClosed)
+		case "merged":
+			state = ptrPullState(models.PullMerged)
+		}
+		query.Set("state", urlState)
+	} else if queryState := query.Get("state"); queryState != nil {
+		switch *queryState {
+		case "open":
+			state = ptrPullState(models.PullOpen)
+		case "closed":
+			state = ptrPullState(models.PullClosed)
+		case "merged":
+			state = ptrPullState(models.PullMerged)
+		}
+	} else if _, hasQ := params["q"]; !hasQ {
+		state = ptrPullState(models.PullOpen)
+		query.Set("state", "open")
 	}
 
-	keyword := params.Get("q")
+	var authorDid string
+	if authorHandle := query.Get("author"); authorHandle != nil {
+		identity, err := s.idResolver.ResolveIdent(r.Context(), *authorHandle)
+		if err != nil {
+			l.Debug("failed to resolve author handle", "handle", *authorHandle, "err", err)
+		} else {
+			authorDid = identity.DID.String()
+		}
+	}
+
+	var negatedAuthorDid string
+	if negatedAuthors := query.GetAllNegated("author"); len(negatedAuthors) > 0 {
+		identity, err := s.idResolver.ResolveIdent(r.Context(), negatedAuthors[0])
+		if err != nil {
+			l.Debug("failed to resolve negated author handle", "handle", negatedAuthors[0], "err", err)
+		} else {
+			negatedAuthorDid = identity.DID.String()
+		}
+	}
+
+	labels := query.GetAll("label")
+	negatedLabels := query.GetAllNegated("label")
+
+	var keywords, negatedKeywords []string
+	var phrases, negatedPhrases []string
+	for _, item := range query.Items() {
+		switch item.Kind {
+		case searchquery.KindKeyword:
+			if item.Negated {
+				negatedKeywords = append(negatedKeywords, item.Value)
+			} else {
+				keywords = append(keywords, item.Value)
+			}
+		case searchquery.KindQuoted:
+			if item.Negated {
+				negatedPhrases = append(negatedPhrases, item.Value)
+			} else {
+				phrases = append(phrases, item.Value)
+			}
+		}
+	}
+
+	searchOpts := models.PullSearchOptions{
+		Keywords:         keywords,
+		Phrases:          phrases,
+		RepoAt:           f.RepoAt().String(),
+		State:            state,
+		AuthorDid:        authorDid,
+		Labels:           labels,
+		NegatedKeywords:  negatedKeywords,
+		NegatedPhrases:   negatedPhrases,
+		NegatedLabels:    negatedLabels,
+		NegatedAuthorDid: negatedAuthorDid,
+		Page:             page,
+	}
+
+	var totalPulls int
+	if state == nil {
+		totalPulls = f.RepoStats.PullCount.Open + f.RepoStats.PullCount.Merged + f.RepoStats.PullCount.Closed
+	} else {
+		switch *state {
+		case models.PullOpen:
+			totalPulls = f.RepoStats.PullCount.Open
+		case models.PullMerged:
+			totalPulls = f.RepoStats.PullCount.Merged
+		case models.PullClosed:
+			totalPulls = f.RepoStats.PullCount.Closed
+		}
+	}
 
 	repoInfo := s.repoResolver.GetRepoInfo(r, user)
 
 	var pulls []*models.Pull
-	searchOpts := models.PullSearchOptions{
-		Keyword: keyword,
-		RepoAt:  f.RepoAt().String(),
-		State:   state,
-		Page:    page,
-	}
-	l.Debug("searching with", "searchOpts", searchOpts)
-	if keyword != "" {
+
+	if searchOpts.HasSearchFilters() {
 		res, err := s.indexer.Search(r.Context(), searchOpts)
 		if err != nil {
 			l.Error("failed to search for pulls", "err", err)
@@ -572,54 +643,31 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 		totalPulls = int(res.Total)
 		l.Debug("searched pulls with indexer", "count", len(res.Hits))
 
-		// count matching pulls in the other states to display correct counts
-		for _, other := range []models.PullState{models.PullOpen, models.PullMerged, models.PullClosed} {
-			if other == state {
-				continue
-			}
-			countRes, err := s.indexer.Search(r.Context(), models.PullSearchOptions{
-				Keyword: keyword, RepoAt: f.RepoAt().String(), State: other,
-				Page: pagination.Page{Limit: 1},
-			})
+		if len(res.Hits) > 0 {
+			pulls, err = db.GetPulls(
+				s.db,
+				orm.FilterIn("id", res.Hits),
+			)
 			if err != nil {
-				continue
+				l.Error("failed to get pulls", "err", err)
+				s.pages.Notice(w, "pulls", "Failed to load pulls. Try again later.")
+				return
 			}
-			switch other {
-			case models.PullOpen:
-				repoInfo.Stats.PullCount.Open = int(countRes.Total)
-			case models.PullMerged:
-				repoInfo.Stats.PullCount.Merged = int(countRes.Total)
-			case models.PullClosed:
-				repoInfo.Stats.PullCount.Closed = int(countRes.Total)
-			}
-		}
-		switch state {
-		case models.PullOpen:
-			repoInfo.Stats.PullCount.Open = int(res.Total)
-		case models.PullMerged:
-			repoInfo.Stats.PullCount.Merged = int(res.Total)
-		case models.PullClosed:
-			repoInfo.Stats.PullCount.Closed = int(res.Total)
-		}
-
-		pulls, err = db.GetPulls(
-			s.db,
-			orm.FilterIn("id", res.Hits),
-		)
-		if err != nil {
-			log.Println("failed to get pulls", err)
-			s.pages.Notice(w, "pulls", "Failed to load pulls. Try again later.")
-			return
 		}
 	} else {
+		filters := []orm.Filter{
+			orm.FilterEq("repo_at", f.RepoAt()),
+		}
+		if state != nil {
+			filters = append(filters, orm.FilterEq("state", *state))
+		}
 		pulls, err = db.GetPullsPaginated(
 			s.db,
 			page,
-			orm.FilterEq("repo_at", f.RepoAt()),
-			orm.FilterEq("state", searchOpts.State),
+			filters...,
 		)
 		if err != nil {
-			log.Println("failed to get pulls", err)
+			l.Error("failed to get pulls", "err", err)
 			s.pages.Notice(w, "pulls", "Failed to load pulls. Try again later.")
 			return
 		}
@@ -688,7 +736,7 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 		orm.FilterContains("scope", tangled.RepoPullNSID),
 	)
 	if err != nil {
-		log.Println("failed to fetch labels", err)
+		l.Error("failed to fetch labels", "err", err)
 		s.pages.Error503(w)
 		return
 	}
@@ -698,13 +746,18 @@ func (s *Pulls) RepoPulls(w http.ResponseWriter, r *http.Request) {
 		defs[l.AtUri().String()] = &l
 	}
 
+	filterState := ""
+	if state != nil {
+		filterState = state.String()
+	}
+
 	s.pages.RepoPulls(w, pages.RepoPullsParams{
 		LoggedInUser: s.oauth.GetMultiAccountUser(r),
 		RepoInfo:     repoInfo,
 		Pulls:        pulls,
 		LabelDefs:    defs,
-		FilteringBy:  state,
-		FilterQuery:  keyword,
+		FilterState:  filterState,
+		FilterQuery:  query.String(),
 		Stacks:       stacks,
 		Pipelines:    m,
 		Page:         page,
@@ -2485,3 +2538,5 @@ func gz(s string) io.Reader {
 	w.Close()
 	return &b
 }
+
+func ptrPullState(s models.PullState) *models.PullState { return &s }

@@ -79,6 +79,8 @@ func generatePullIndexMapping() (mapping.IndexMapping, error) {
 
 	docMapping.AddFieldMappingsAt("repo_at", keywordFieldMapping)
 	docMapping.AddFieldMappingsAt("state", keywordFieldMapping)
+	docMapping.AddFieldMappingsAt("author_did", keywordFieldMapping)
+	docMapping.AddFieldMappingsAt("labels", keywordFieldMapping)
 
 	err := mapping.AddCustomTokenFilter(unicodeNormalizeName, map[string]any{
 		"type": unicodenorm.Name,
@@ -163,26 +165,29 @@ func PopulateIndexer(ctx context.Context, ix *Indexer, e db.Execer) error {
 	return err
 }
 
-// pullData data stored and will be indexed
 type pullData struct {
-	ID     int64  `json:"id"`
-	RepoAt string `json:"repo_at"`
-	PullID int    `json:"pull_id"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
-	State  string `json:"state"`
+	ID        int64    `json:"id"`
+	RepoAt    string   `json:"repo_at"`
+	PullID    int      `json:"pull_id"`
+	Title     string   `json:"title"`
+	Body      string   `json:"body"`
+	State     string   `json:"state"`
+	AuthorDid string   `json:"author_did"`
+	Labels    []string `json:"labels"`
 
 	Comments []pullCommentData `json:"comments"`
 }
 
 func makePullData(pull *models.Pull) *pullData {
 	return &pullData{
-		ID:     int64(pull.ID),
-		RepoAt: pull.RepoAt.String(),
-		PullID: pull.PullId,
-		Title:  pull.Title,
-		Body:   pull.Body,
-		State:  pull.State.String(),
+		ID:        int64(pull.ID),
+		RepoAt:    pull.RepoAt.String(),
+		PullID:    pull.PullId,
+		Title:     pull.Title,
+		Body:      pull.Body,
+		State:     pull.State.String(),
+		AuthorDid: pull.OwnerDid,
+		Labels:    pull.Labels.LabelNames(),
 	}
 }
 
@@ -217,9 +222,9 @@ func (ix *Indexer) Delete(ctx context.Context, pullID int64) error {
 	return ix.indexer.Delete(base36.Encode(pullID))
 }
 
-// Search searches for pulls
 func (ix *Indexer) Search(ctx context.Context, opts models.PullSearchOptions) (*searchResult, error) {
-	var queries []query.Query
+	var musts []query.Query
+	var mustNots []query.Query
 
 	// TODO(boltless): remove this after implementing pulls page pagination
 	limit := opts.Page.Limit
@@ -227,16 +232,58 @@ func (ix *Indexer) Search(ctx context.Context, opts models.PullSearchOptions) (*
 		limit = 500
 	}
 
-	if opts.Keyword != "" {
-		queries = append(queries, bleve.NewDisjunctionQuery(
-			bleveutil.MatchAndQuery("title", opts.Keyword, pullIndexerAnalyzer, 0),
-			bleveutil.MatchAndQuery("body", opts.Keyword, pullIndexerAnalyzer, 0),
+	for _, keyword := range opts.Keywords {
+		musts = append(musts, bleve.NewDisjunctionQuery(
+			bleveutil.MatchAndQuery("title", keyword, pullIndexerAnalyzer, 0),
+			bleveutil.MatchAndQuery("body", keyword, pullIndexerAnalyzer, 0),
 		))
 	}
-	queries = append(queries, bleveutil.KeywordFieldQuery("repo_at", opts.RepoAt))
-	queries = append(queries, bleveutil.KeywordFieldQuery("state", opts.State.String()))
 
-	var indexerQuery query.Query = bleve.NewConjunctionQuery(queries...)
+	for _, phrase := range opts.Phrases {
+		musts = append(musts, bleve.NewDisjunctionQuery(
+			bleveutil.MatchPhraseQuery("title", phrase, pullIndexerAnalyzer),
+			bleveutil.MatchPhraseQuery("body", phrase, pullIndexerAnalyzer),
+		))
+	}
+
+	for _, keyword := range opts.NegatedKeywords {
+		mustNots = append(mustNots, bleve.NewDisjunctionQuery(
+			bleveutil.MatchAndQuery("title", keyword, pullIndexerAnalyzer, 0),
+			bleveutil.MatchAndQuery("body", keyword, pullIndexerAnalyzer, 0),
+		))
+	}
+
+	for _, phrase := range opts.NegatedPhrases {
+		mustNots = append(mustNots, bleve.NewDisjunctionQuery(
+			bleveutil.MatchPhraseQuery("title", phrase, pullIndexerAnalyzer),
+			bleveutil.MatchPhraseQuery("body", phrase, pullIndexerAnalyzer),
+		))
+	}
+
+	musts = append(musts, bleveutil.KeywordFieldQuery("repo_at", opts.RepoAt))
+	if opts.State != nil {
+		musts = append(musts, bleveutil.KeywordFieldQuery("state", opts.State.String()))
+	}
+
+	if opts.AuthorDid != "" {
+		musts = append(musts, bleveutil.KeywordFieldQuery("author_did", opts.AuthorDid))
+	}
+
+	for _, label := range opts.Labels {
+		musts = append(musts, bleveutil.KeywordFieldQuery("labels", label))
+	}
+
+	if opts.NegatedAuthorDid != "" {
+		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("author_did", opts.NegatedAuthorDid))
+	}
+
+	for _, label := range opts.NegatedLabels {
+		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("labels", label))
+	}
+
+	indexerQuery := bleve.NewBooleanQuery()
+	indexerQuery.AddMust(musts...)
+	indexerQuery.AddMustNot(mustNots...)
 	searchReq := bleve.NewSearchRequestOptions(indexerQuery, limit, opts.Page.Offset, false)
 	res, err := ix.indexer.SearchInContext(ctx, searchReq)
 	if err != nil {

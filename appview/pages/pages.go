@@ -979,15 +979,15 @@ func (p *Pages) RepoWebhooksSettings(w io.Writer, params RepoWebhooksSettingsPar
 }
 
 type RepoIssuesParams struct {
-	LoggedInUser    *oauth.MultiAccountUser
-	RepoInfo        repoinfo.RepoInfo
-	Active          string
-	Issues          []models.Issue
-	IssueCount      int
-	LabelDefs       map[string]*models.LabelDefinition
-	Page            pagination.Page
-	FilteringByOpen bool
-	FilterQuery     string
+	LoggedInUser *oauth.MultiAccountUser
+	RepoInfo     repoinfo.RepoInfo
+	Active       string
+	Issues       []models.Issue
+	IssueCount   int
+	LabelDefs    map[string]*models.LabelDefinition
+	Page         pagination.Page
+	FilterState  string
+	FilterQuery  string
 }
 
 func (p *Pages) RepoIssues(w io.Writer, params RepoIssuesParams) error {
@@ -1117,7 +1117,7 @@ type RepoPullsParams struct {
 	RepoInfo     repoinfo.RepoInfo
 	Pulls        []*models.Pull
 	Active       string
-	FilteringBy  models.PullState
+	FilterState  string
 	FilterQuery  string
 	Stacks       map[string]models.Stack
 	Pipelines    map[string]models.Pipeline

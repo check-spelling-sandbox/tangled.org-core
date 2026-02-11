@@ -13,6 +13,13 @@ func MatchAndQuery(field, keyword, analyzer string, fuzziness int) query.Query {
 	return q
 }
 
+func MatchPhraseQuery(field, phrase, analyzer string) query.Query {
+	q := bleve.NewMatchPhraseQuery(phrase)
+	q.FieldVal = field
+	q.Analyzer = analyzer
+	return q
+}
+
 func BoolFieldQuery(field string, val bool) query.Query {
 	q := bleve.NewBoolFieldQuery(val)
 	q.FieldVal = field

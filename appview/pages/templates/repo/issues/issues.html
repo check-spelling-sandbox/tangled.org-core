@@ -8,18 +8,15 @@
 {{ end }}
 
 {{ define "repoContent" }}
-  {{ $active := "closed" }}
-  {{ if .FilteringByOpen }}
-    {{ $active = "open" }}
-  {{ end }}
+  {{ $active := .FilterState }}
 
-  {{ $open := 
+  {{ $open :=
      (dict
        "Key" "open"
        "Value" "open"
        "Icon" "circle-dot"
        "Meta" (string .RepoInfo.Stats.IssueCount.Open)) }}
-  {{ $closed := 
+  {{ $closed :=
      (dict
        "Key" "closed"
        "Value" "closed"
@@ -28,8 +25,7 @@
   {{ $values := list $open $closed }}
 
   <div class="grid gap-2 grid-cols-[auto_1fr_auto] grid-row-2">
-    <form class="flex relative col-span-3 sm:col-span-1 sm:col-start-2" method="GET">
-      <input type="hidden" name="state" value="{{ if .FilteringByOpen }}open{{ else }}closed{{ end }}">
+    <form id="search-form" class="flex relative col-span-3 sm:col-span-1 sm:col-start-2" method="GET">
       <div class="flex-1 flex relative">
         <input
           id="search-q"
@@ -40,7 +36,7 @@
           placeholder="search issues..."
         >
         <a
-          href="?state={{ if .FilteringByOpen }}open{{ else }}closed{{ end }}"
+          {{ if $active }}href="?q=state:{{ $active }}"{{ else }}href="?"{{ end }}
           class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hidden peer-[:not(:placeholder-shown)]:block"
         >
           {{ i "x" "w-4 h-4" }}
@@ -54,7 +50,7 @@
       </button>
     </form>
     <div class="sm:row-start-1">
-      {{ template "fragments/tabSelector" (dict "Name" "state" "Values" $values "Active" $active "Include" "#search-q") }}
+      {{ template "fragments/tabSelector" (dict "Name" "state" "Values" $values "Active" $active "Include" "#search-q" "Form" "search-form") }}
     </div>
     <a
       href="/{{ .RepoInfo.FullName }}/issues/new"
@@ -72,15 +68,11 @@
     {{ template "repo/issues/fragments/issueListing" (dict "Issues" .Issues "RepoPrefix" .RepoInfo.FullName "LabelDefs" .LabelDefs) }}
   </div>
   {{if gt .IssueCount .Page.Limit }}
-    {{ $state := "closed" }}
-    {{ if .FilteringByOpen }}
-      {{ $state = "open" }}
-    {{ end }}
-    {{ template "fragments/pagination" (dict 
-        "Page" .Page 
-        "TotalCount" .IssueCount 
+    {{ template "fragments/pagination" (dict
+        "Page" .Page
+        "TotalCount" .IssueCount
         "BasePath" (printf "/%s/issues" .RepoInfo.FullName)
-        "QueryParams" (queryParams "state" $state "q" .FilterQuery)
+        "QueryParams" (queryParams "q" .FilterQuery)
     ) }}
   {{ end }}
 {{ end }}
