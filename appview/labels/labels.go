@@ -13,6 +13,7 @@ import (
 	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/middleware"
 	"tangled.org/core/appview/models"
+	"tangled.org/core/appview/notify"
 	"tangled.org/core/appview/oauth"
 	"tangled.org/core/appview/pages"
 	"tangled.org/core/appview/validator"
@@ -34,6 +35,7 @@ type Labels struct {
 	logger    *slog.Logger
 	validator *validator.Validator
 	enforcer  *rbac.Enforcer
+	notifier  notify.Notifier
 }
 
 func New(
@@ -42,6 +44,7 @@ func New(
 	db *db.DB,
 	validator *validator.Validator,
 	enforcer *rbac.Enforcer,
+	notifier notify.Notifier,
 	logger *slog.Logger,
 ) *Labels {
 	return &Labels{
@@ -51,6 +54,7 @@ func New(
 		logger:    logger,
 		validator: validator,
 		enforcer:  enforcer,
+		notifier:  notifier,
 	}
 }
 
@@ -244,6 +248,20 @@ func (l *Labels) PerformLabelOp(w http.ResponseWriter, r *http.Request) {
 
 	// clear aturi when everything is successful
 	atUri = ""
+
+	subject := syntax.ATURI(subjectUri)
+	if subject.Collection() == tangled.RepoIssueNSID {
+		issues, err := db.GetIssues(l.db, orm.FilterEq("at_uri", subjectUri))
+		if err == nil && len(issues) == 1 {
+			l.notifier.NewIssueLabelOp(r.Context(), &issues[0])
+		}
+	}
+	if subject.Collection() == tangled.RepoPullNSID {
+		pulls, err := db.GetPulls(l.db, orm.FilterEq("at_uri", subjectUri))
+		if err == nil && len(pulls) == 1 {
+			l.notifier.NewPullLabelOp(r.Context(), pulls[0])
+		}
+	}
 
 	l.pages.HxRefresh(w)
 }

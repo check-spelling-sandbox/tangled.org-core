@@ -340,6 +340,7 @@ func (s *State) LabelsRouter() http.Handler {
 		s.db,
 		s.validator,
 		s.enforcer,
+		s.notifier,
 		log.SubLogger(s.logger, "labels"),
 	)
 	return ls.Router()

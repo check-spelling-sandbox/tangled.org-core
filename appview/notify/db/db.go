@@ -206,6 +206,9 @@ func (n *databaseNotifier) DeleteIssue(ctx context.Context, issue *models.Issue)
 	// no-op for now
 }
 
+func (n *databaseNotifier) NewIssueLabelOp(ctx context.Context, issue *models.Issue) {}
+func (n *databaseNotifier) NewPullLabelOp(ctx context.Context, pull *models.Pull)   {}
+
 func (n *databaseNotifier) NewFollow(ctx context.Context, follow *models.Follow) {
 	actorDid := syntax.DID(follow.UserDid)
 	recipients := sets.Singleton(syntax.DID(follow.SubjectDid))
