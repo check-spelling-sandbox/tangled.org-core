@@ -964,6 +964,20 @@ func (p *Pages) RepoPipelineSettings(w io.Writer, params RepoPipelineSettingsPar
 	return p.executeRepo("repo/settings/pipelines", w, params)
 }
 
+type RepoWebhooksSettingsParams struct {
+	LoggedInUser *oauth.MultiAccountUser
+	RepoInfo     repoinfo.RepoInfo
+	Active       string
+	Tab          string
+	Webhooks     []models.Webhook
+}
+
+func (p *Pages) RepoWebhooksSettings(w io.Writer, params RepoWebhooksSettingsParams) error {
+	params.Active = "settings"
+	params.Tab = "hooks"
+	return p.executeRepo("repo/settings/hooks", w, params)
+}
+
 type RepoIssuesParams struct {
 	LoggedInUser    *oauth.MultiAccountUser
 	RepoInfo        repoinfo.RepoInfo

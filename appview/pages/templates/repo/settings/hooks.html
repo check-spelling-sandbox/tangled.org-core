@@ -1,0 +1,261 @@
+{{ define "title" }}{{ .Tab }} settings &middot; {{ .RepoInfo.FullName }}{{ end }}
+
+{{ define "repoContent" }}
+  <section class="w-full grid grid-cols-1 md:grid-cols-4 gap-2">
+    <div class="col-span-1">
+      {{ template "repo/settings/fragments/sidebar" . }}
+    </div>
+    <div class="col-span-1 md:col-span-3 flex flex-col gap-6 p-2">
+      {{ template "webhooksSettings" . }}
+      <div id="operation-error" class="text-red-500 dark:text-red-400"></div>
+    </div>
+  </section>
+{{ end }}
+
+{{ define "webhooksSettings" }}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+    <div class="col-span-1 md:col-span-2">
+      <h2 class="text-sm pb-2 uppercase font-bold">Webhooks</h2>
+      <p class="text-gray-500 dark:text-gray-400">
+        Webhooks allow external services to be notified when certain events happen.
+        When the specified events happen, we'll send a POST request to each of the URLs you provide.
+      </p>
+    </div>
+    <div class="col-span-1 md:col-span-1 md:justify-self-end">
+      <button
+        class="btn flex items-center gap-2"
+        popovertarget="add-webhook-modal"
+        {{ if not .RepoInfo.Roles.IsOwner }}disabled{{ end }}
+        popovertargetaction="toggle">
+        {{ i "plus" "size-4" }}
+        new webhook
+      </button>
+      <div
+        id="add-webhook-modal"
+        popover
+        class="bg-white w-full sm:w-[40rem] dark:bg-gray-800 p-6 max-h-dvh overflow-y-auto rounded border border-gray-200 dark:border-gray-700 drop-shadow dark:text-white backdrop:bg-gray-400/50 dark:backdrop:bg-gray-800/50">
+        {{ template "addWebhookModal" . }}
+      </div>
+    </div>
+  </div>
+  <div class="flex flex-col rounded border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 w-full">
+    {{ range .Webhooks }}
+      <div id="webhook-{{.Id}}" class="flex flex-col gap-2 p-4">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-sm break-all">{{ .Url }}</span>
+              {{ if .Active }}
+                <span class="inline-flex items-center gap-1 px-2 py-1 text-sm rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  {{ i "circle-check" "size-4" }}
+                  active
+                </span>
+              {{ else }}
+                <span class="inline-flex items-center gap-1 px-2 py-1 text-sm rounded bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                  {{ i "circle" "size-4" }}
+                  inactive
+                </span>
+              {{ end }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Events: {{ range $i, $e := .Events }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}
+            </div>
+          </div>
+          {{ if $.RepoInfo.Roles.IsOwner }}
+            <div class="flex gap-2 items-center">
+              <button
+                class="btn text-sm flex items-center gap-1"
+                popovertarget="edit-webhook-modal-{{.Id}}"
+                popovertargetaction="toggle">
+                {{ i "pencil" "size-4" }}
+                edit
+              </button>
+              <button
+                class="btn text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-1 group"
+                hx-delete="/{{ $.RepoInfo.FullName }}/settings/hooks/{{ .Id }}"
+                hx-swap="none"
+                hx-confirm="Are you sure you want to delete this webhook?">
+                {{ i "trash-2" "size-4" }}
+                delete
+                {{ i "loader-circle" "size-4 animate-spin hidden group-[.htmx-request]:inline" }}
+              </button>
+            </div>
+          {{ end }}
+        </div>
+        {{ if $.RepoInfo.Roles.IsOwner }}
+        <div class="flex items-center">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              {{ if .Active }}checked{{ end }}
+              hx-post="/{{ $.RepoInfo.FullName }}/settings/hooks/{{ .Id }}/toggle"
+              hx-swap="none"
+              class="cursor-pointer"
+            />
+            <span class="text-sm">Active</span>
+          </label>
+        </div>
+        <div
+          id="edit-webhook-modal-{{.Id}}"
+          popover
+          class="bg-white w-full sm:w-[40rem] dark:bg-gray-800 p-6 max-h-dvh overflow-y-auto rounded border border-gray-200 dark:border-gray-700 drop-shadow dark:text-white backdrop:bg-gray-400/50 dark:backdrop:bg-gray-800/50">
+          {{ template "editWebhookModal" (list $ .) }}
+        </div>
+        {{ end }}
+      </div>
+    {{ else }}
+      <div class="flex items-center justify-center p-4 text-gray-500">
+        no webhooks configured yet
+      </div>
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "addWebhookModal" }}
+<form
+  hx-post="/{{ $.RepoInfo.FullName }}/settings/hooks"
+  hx-swap="none"
+  class="flex flex-col gap-4"
+>
+  <h3 class="uppercase font-bold">New Webhook</h3>
+
+  <div class="flex flex-col gap-2">
+    <label for="webhook-url" class="text-sm font-semibold">Payload URL</label>
+    <input
+      type="url"
+      id="webhook-url"
+      name="url"
+      required
+      placeholder="https://example.com/webhook"
+      class="w-full"
+    />
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      The URL that will receive the webhook POST requests.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="webhook-secret" class="text-sm font-semibold">Secret (optional)</label>
+    <input
+      type="text"
+      id="webhook-secret"
+      name="secret"
+      placeholder="Optional: provide a secret for signed webhooks"
+      class="w-full font-mono text-sm"
+    />
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      If provided, webhook payloads will be signed with HMAC-SHA256. Leave blank to send unsigned webhooks.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold">Events</label>
+    <div class="flex flex-col gap-2 ml-4">
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="event_push" value="on" checked />
+        <span class="text-sm">Push events</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Additional event types (pull requests, issues) will be available in future updates.
+      </p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <input type="checkbox" id="webhook-active" name="active" value="on" checked />
+    <label for="webhook-active" class="text-sm font-semibold">Active</label>
+  </div>
+
+  <div class="flex gap-2 pt-2 justify-end">
+    <button
+      type="button"
+      popovertarget="add-webhook-modal"
+      popovertargetaction="hide"
+      class="btn flex items-center gap-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+      >
+      {{ i "x" "size-4" }} cancel
+    </button>
+    <button type="submit" class="btn-create flex items-center gap-2 group">
+      {{ i "plus" "size-4" }} add webhook
+      {{ i "loader-circle" "size-4 animate-spin hidden group-[.htmx-request]:inline" }}
+    </button>
+  </div>
+  <div id="webhooks-error" class="text-red-500 dark:text-red-400"></div>
+</form>
+{{ end }}
+
+{{ define "editWebhookModal" }}
+{{ $ctx := index . 0 }}
+{{ $webhook := index . 1 }}
+<form
+  hx-put="/{{ $ctx.RepoInfo.FullName }}/settings/hooks/{{ $webhook.Id }}"
+  hx-swap="none"
+  class="flex flex-col gap-4"
+>
+  <h3 class="uppercase font-bold">Edit Webhook</h3>
+
+  <div class="flex flex-col gap-2">
+    <label for="edit-webhook-url-{{ $webhook.Id }}" class="text-sm font-semibold">Payload URL</label>
+    <input
+      type="url"
+      id="edit-webhook-url-{{ $webhook.Id }}"
+      name="url"
+      required
+      value="{{ $webhook.Url }}"
+      class="w-full"
+    />
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label for="edit-webhook-secret-{{ $webhook.Id }}" class="text-sm font-semibold">Secret (optional)</label>
+    <input
+      type="text"
+      id="edit-webhook-secret-{{ $webhook.Id }}"
+      name="secret"
+      placeholder="Leave blank to keep current secret"
+      class="w-full font-mono text-sm"
+    />
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Leave blank to keep the existing secret. Remove value to disable signing.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <label class="text-sm font-semibold">Events</label>
+    <div class="flex flex-col gap-2 ml-4">
+      {{ $hasPush := false }}
+      {{ range $webhook.Events }}
+        {{ if eq . "push" }}{{ $hasPush = true }}{{ end }}
+      {{ end }}
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="event_push" value="on" {{ if $hasPush }}checked{{ end }} />
+        <span class="text-sm">Push events</span>
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Additional event types (pull requests, issues) will be available in future updates.
+      </p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <input type="checkbox" id="edit-webhook-active-{{ $webhook.Id }}" name="active" value="on" {{ if $webhook.Active }}checked{{ end }} />
+    <span for="edit-webhook-active-{{ $webhook.Id }}">Enable</span>
+  </div>
+
+  <div class="flex gap-2 pt-2 justify-end">
+    <button
+      type="button"
+      popovertarget="edit-webhook-modal-{{ $webhook.Id }}"
+      popovertargetaction="hide"
+      class="btn flex items-center gap-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+      >
+      {{ i "x" "size-4" }} cancel
+    </button>
+    <button type="submit" class="btn-create flex items-center gap-2 group">
+      {{ i "save" "size-4" }} save
+      {{ i "loader-circle" "size-4 animate-spin hidden group-[.htmx-request]:inline" }}
+    </button>
+  </div>
+  <div id="webhooks-error" class="text-red-500 dark:text-red-400"></div>
+</form>
+{{ end }}
