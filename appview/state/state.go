@@ -251,50 +251,6 @@ func (s *State) Brand(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (s *State) HomeOrTimeline(w http.ResponseWriter, r *http.Request) {
-	if s.oauth.GetMultiAccountUser(r) != nil {
-		s.Timeline(w, r)
-		return
-	}
-	s.Home(w, r)
-}
-
-func (s *State) Timeline(w http.ResponseWriter, r *http.Request) {
-	user := s.oauth.GetMultiAccountUser(r)
-
-	// TODO: set this flag based on the UI
-	filtered := false
-
-	var userDid string
-	if user != nil && user.Active != nil {
-		userDid = user.Active.Did
-	}
-	timeline, err := db.MakeTimeline(s.db, 50, userDid, filtered)
-	if err != nil {
-		s.logger.Error("failed to make timeline", "err", err)
-		s.pages.Notice(w, "timeline", "Uh oh! Failed to load timeline.")
-	}
-
-	repos, err := db.GetTopStarredReposLastWeek(s.db)
-	if err != nil {
-		s.logger.Error("failed to get top starred repos", "err", err)
-		s.pages.Notice(w, "topstarredrepos", "Unable to load.")
-		return
-	}
-
-	gfiLabel, err := db.GetLabelDefinition(s.db, orm.FilterEq("at_uri", s.config.Label.GoodFirstIssue))
-	if err != nil {
-		// non-fatal
-	}
-
-	s.pages.Timeline(w, pages.TimelineParams{
-		LoggedInUser: user,
-		Timeline:     timeline,
-		Repos:        repos,
-		GfiLabel:     gfiLabel,
-	})
-}
-
 func (s *State) UpgradeBanner(w http.ResponseWriter, r *http.Request) {
 	user := s.oauth.GetMultiAccountUser(r)
 	if user == nil {
@@ -329,31 +285,6 @@ func (s *State) UpgradeBanner(w http.ResponseWriter, r *http.Request) {
 	s.pages.UpgradeBanner(w, pages.UpgradeBannerParams{
 		Registrations: regs,
 		Spindles:      spindles,
-	})
-}
-
-func (s *State) Home(w http.ResponseWriter, r *http.Request) {
-	// TODO: set this flag based on the UI
-	filtered := false
-
-	timeline, err := db.MakeTimeline(s.db, 5, "", filtered)
-	if err != nil {
-		s.logger.Error("failed to make timeline", "err", err)
-		s.pages.Notice(w, "timeline", "Uh oh! Failed to load timeline.")
-		return
-	}
-
-	repos, err := db.GetTopStarredReposLastWeek(s.db)
-	if err != nil {
-		s.logger.Error("failed to get top starred repos", "err", err)
-		s.pages.Notice(w, "topstarredrepos", "Unable to load.")
-		return
-	}
-
-	s.pages.Home(w, pages.TimelineParams{
-		LoggedInUser: nil,
-		Timeline:     timeline,
-		Repos:        repos,
 	})
 }
 
@@ -675,4 +606,55 @@ func BackfillDefaultDefs(e db.Execer, r *idresolver.Resolver, defaults []string)
 	}
 
 	return nil
+}
+
+func fetchBskyPosts(ctx context.Context, res *idresolver.Resolver, config *config.Config, d *db.DB, logger *slog.Logger) {
+	resolved, err := res.ResolveIdent(context.Background(), consts.TangledDid)
+	if err != nil {
+		logger.Error("failed to resolve tangled.org DID", "err", err)
+		return
+	}
+
+	pdsEndpoint := resolved.PDSEndpoint()
+	if pdsEndpoint == "" {
+		logger.Error("no PDS endpoint found for tangled.sh DID")
+		return
+	}
+
+	session, err := oauth.CreateAppPasswordSession(res, config.Core.AppPassword, consts.TangledDid)
+	if err != nil {
+		logger.Error("failed to create appassword session... skipping fetch", "err", err)
+		return
+	}
+
+	client := xrpc.Client{
+		Auth: &xrpc.AuthInfo{
+			AccessJwt: session.AccessJwt,
+			Did:       session.Did,
+		},
+		Host: session.PdsEndpoint,
+	}
+
+	l := log.SubLogger(logger, "bluesky")
+
+	ticker := time.NewTicker(config.Bluesky.UpdateInterval)
+	defer ticker.Stop()
+
+	for {
+		posts, _, err := bsky.FetchPosts(ctx, &client, 20, "")
+		if err != nil {
+			l.Error("failed to fetch bluesky posts", "err", err)
+		} else if err := db.InsertBlueskyPosts(d, posts); err != nil {
+			l.Error("failed to insert bluesky posts", "err", err)
+		} else {
+			l.Info("inserted bluesky posts", "count", len(posts))
+		}
+
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			l.Info("stopping bluesky updater")
+			return
+		}
+	}
 }

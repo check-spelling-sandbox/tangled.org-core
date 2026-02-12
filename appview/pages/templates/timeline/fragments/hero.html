@@ -1,33 +1,30 @@
 {{ define "timeline/fragments/hero" }}
-    <div class="mx-auto max-w-[100rem] flex flex-col text-black dark:text-white px-6 py-4 gap-6 items-center md:flex-row">
-        <div class="flex flex-col gap-6">
-            <h1 class="font-bold text-4xl">tightly-knit<br>social coding.</h1>
-
-            <p class="text-lg">
-                Tangled is a decentralized Git hosting and collaboration platform.
-            </p>
-            <p class="text-lg">
-              We envision a place where developers have complete ownership of their
-              code, open source communities can freely self-govern and most
-              importantly, coding can be social and fun again.
-            </p>
-
-            <div class="flex gap-6 items-center">
-              <a href="/signup" class="no-underline hover:no-underline ">
-                <button class="btn-create flex gap-2 px-4 items-center">
-                  join now {{ i "arrow-right" "size-4" }}
-                </button>
-              </a>
-            </div>
-        </div>
-
-        <figure class="w-full hidden md:block md:w-auto">
-            <a href="https://tangled.org/@tangled.org/core" class="block">
-                <img src="https://assets.tangled.network/hero-repo.png" alt="Screenshot of the Tangled monorepo." class="max-w-md mx-auto md:max-w-none w-full md:w-[30vw] h-auto shadow-sm rounded" />
-            </a>
-            <figcaption class="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                Monorepo for Tangled, built in the open with the community.
-            </figcaption>
-        </figure>
+    <div class="mx-auto max-w-[100rem] grid grid-cols-1 md:grid-cols-2 text-black dark:text-white px-6 py-4 gap-6 items-center md:flex-row">
+      <h1 class="font-bold text-5xl md:text-6xl lg:text-8xl">tightly-knit<br>social coding.</h1>
+      <div id="hero-right" class="space-y-6">
+        <p class="text-xl">
+            The next-generation social coding platform.
+        </p>
+        <p class="text-xl">
+          We envision a place where developers have ownership of their code,
+          communities can freely self-govern and most importantly, coding can
+          be social and fun again.
+        </p>
+        <form class="flex gap-2 items-stretch">
+          <input
+              type="email"
+              id="email"
+              name="email"
+              tabindex="4"
+              required
+              placeholder="Enter your email"
+              class="py-2 w-full md:w-fit"
+          />
+          <button class="btn-create flex items-center gap-2 text-base whitespace-nowrap" type="submit">
+            join now
+            {{ i "arrow-right" "size-4" }}
+          </button>
+        </form>
+      </div>
     </div>
 {{ end }}

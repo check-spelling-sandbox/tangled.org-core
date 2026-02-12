@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"log"
 	"math"
+	"math/rand"
 	"net/url"
 	"path/filepath"
 	"reflect"
@@ -123,6 +124,9 @@ func (p *Pages) funcMap() template.FuncMap {
 		},
 		"mod": func(a, b int) int {
 			return a % b
+		},
+		"randInt": func(bound int) int {
+			return rand.Intn(bound)
 		},
 		"f64": func(a int) float64 {
 			return float64(a)

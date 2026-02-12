@@ -1,0 +1,133 @@
+{{ define "timeline/fragments/preview" }}
+  <div class="flex flex-col gap-4 overflow-hidden">
+    <div class="relative h-80 w-full">
+      <!-- left fade overlay (fixed on left edge) -->
+      <div class="absolute left-0 top-0 h-full w-16 pointer-events-none z-10 bg-gradient-to-r from-white to-transparent dark:from-gray-900"></div>
+
+      <!-- right fade overlay (fixed on right edge) -->
+      <div class="absolute right-0 top-0 h-full w-16 pointer-events-none z-10 bg-gradient-to-l from-white to-transparent dark:from-gray-900"></div>
+
+      {{ template "marquee" $ }}
+    </div>
+  </div>
+{{ end }}
+
+{{ define "marquee" }}
+  {{ $rowOffsets := list 10 80 150 220 }}
+  {{ $prev := -1 }}
+  {{ $w := mul (len .Timeline) 150 }}
+
+  <div class="absolute h-full flex animate-marquee">
+    <div class="relative h-full flex-shrink-0 bottom-4 border-b border-gray-200 dark:border-gray-700" style="width: {{ $w }}px;">
+      {{ range $i, $e := .Timeline }}
+        {{ $curr := randInt 4 }}
+        {{ if eq $curr $prev }}
+          {{ $curr = mod (add $curr 1) 4 }}
+        {{ end }}
+        {{ $offset := index $rowOffsets $curr }}
+        {{ template "timelineEvent" (list $i $e $offset) }}
+        {{ $prev = $curr }}
+      {{ end }}
+    </div>
+
+    <div
+      class="absolute left-0 bottom-0 h-3 flex-shrink-0 bg-[linear-gradient(to_right,currentColor_1px,transparent_1px)] bg-[length:6px_100%] bg-repeat-x text-gray-400 dark:text-gray-500"
+      style="width: {{ $w }}px;">
+    </div>
+
+  </div>
+{{ end }}
+
+{{ define "timelineEvent" }}
+  {{ $i := index . 0 }}
+  {{ $e := index . 1 }}
+  {{ $variance := randInt 10 }}
+  {{ $offset := add (index . 2) $variance }}
+  {{ $left := mul $i 175 }}
+  {{ with $e }}
+    <div
+      class="absolute left-0 flex flex-col divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-sm bg-white dark:bg-gray-800 drop-shadow-sm"
+      style="bottom: {{ $offset }}px; left: {{ $left }}px; transform: translateX(-50%); z-index: 5;"
+    >
+      {{ if .Repo }}
+        {{ template "repoEvent" (list $ .) }}
+      {{ else if .RepoStar }}
+        {{ template "starEvent" (list $ .) }}
+      {{ else if .Follow }}
+        {{ template "followEvent" (list $ .) }}
+      {{ end }}
+    </div>
+  {{ end }}
+
+  <!-- vertical connector -->
+  <div
+    class="absolute w-px bg-gray-300 dark:bg-gray-700"
+    style="left: {{ $left }}px; bottom: 0px; height: {{ $offset }}px; z-index: 0;"
+  ></div>
+
+  <!-- dot at the bottom -->
+  <div
+    class="absolute size-2 bg-gray-300 dark:bg-gray-600 rounded-full"
+    style="left: {{ sub $left 3 }}px; bottom: -3px; z-index: 0;">
+  </div>
+{{ end }}
+
+{{ define "repoEvent" }}
+  {{ $root := index . 0 }}
+  {{ $event := index . 1 }}
+  {{ $repo := $event.Repo }}
+  {{ $source := $event.Source }}
+  {{ $userHandle := resolve $repo.Did }}
+    <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
+      {{ template "user/fragments/picHandleLink" $repo.Did }}
+      {{ with $source }}
+        {{ $sourceDid := resolve .Did }}
+        forked
+        <a href="/{{ $sourceDid }}/{{ .Name }}"class="no-underline hover:underline">
+            {{ $sourceDid }}/{{ .Name }}
+        </a>
+        to
+        <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">{{ $repo.Name }}</a>
+      {{ else }}
+        created
+        <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">
+          {{ $repo.Name }}
+        </a>
+      {{ end }}
+    </div>
+{{ end }}
+
+{{ define "starEvent" }}
+  {{ $root := index . 0 }}
+  {{ $event := index . 1 }}
+  {{ $star := $event.RepoStar }}
+  {{ with $star }}
+    {{ $starrerHandle := resolve .Did }}
+    {{ $repoOwnerHandle :=  resolve .Repo.Did }}
+    <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
+        {{ template "user/fragments/picHandleLink" $starrerHandle }}
+        starred
+        {{ template "user/fragments/pic" (list $repoOwnerHandle "size-6") }}
+        <a href="/{{ $repoOwnerHandle }}/{{ .Repo.Name }}" class="no-underline hover:underline">
+          {{ $repoOwnerHandle | truncateAt30 }}/{{ .Repo.Name }}
+        </a>
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ define "followEvent" }}
+  {{ $root := index . 0 }}
+  {{ $event := index . 1 }}
+  {{ $follow := $event.Follow }}
+  {{ $profile := $event.Profile }}
+  {{ $followStats := $event.FollowStats }}
+  {{ $followStatus := $event.FollowStatus }}
+
+  {{ $userHandle :=  resolve $follow.UserDid }}
+  {{ $subjectHandle :=  resolve $follow.SubjectDid }}
+  <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
+      {{ template "user/fragments/picHandleLink" $userHandle }}
+      followed
+      {{ template "user/fragments/picHandleLink" $subjectHandle }}
+  </div>
+{{ end }}
