@@ -281,6 +281,35 @@
         .success {
             @apply py-1 text-gray-900 dark:text-gray-100;
         }
+
+        @keyframes scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .animate-marquee {
+          animation: scroll 30s linear infinite;
+        }
+
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .animate-marquee {
+            animation: none;
+            transform: none;
+          }
+        }
+
+        @keyframes progress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+
+        .animate-progress {
+          animation: progress 5s linear forwards;
+        }
     }
 
 }
