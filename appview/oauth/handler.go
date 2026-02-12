@@ -19,6 +19,7 @@ import (
 	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/models"
 	"tangled.org/core/consts"
+	"tangled.org/core/idresolver"
 	"tangled.org/core/orm"
 	"tangled.org/core/tid"
 )
@@ -129,7 +130,7 @@ func (o *OAuth) addToDefaultSpindle(did string) {
 	}
 
 	l.Debug("adding to default spindle")
-	session, err := o.createAppPasswordSession(o.Config.Core.AppPassword, consts.TangledDid)
+	session, err := CreateAppPasswordSession(o.IdResolver, o.Config.Core.AppPassword, consts.TangledDid)
 	if err != nil {
 		l.Error("failed to create session", "err", err)
 		return
@@ -168,7 +169,7 @@ func (o *OAuth) addToDefaultKnot(did string) {
 	}
 
 	l.Debug("adding to default knot")
-	session, err := o.createAppPasswordSession(o.Config.Core.TmpAltAppPassword, consts.IcyDid)
+	session, err := CreateAppPasswordSession(o.IdResolver, o.Config.Core.TmpAltAppPassword, consts.IcyDid)
 	if err != nil {
 		l.Error("failed to create session", "err", err)
 		return
@@ -241,19 +242,19 @@ func (o *OAuth) ensureTangledProfile(sessData *oauth.ClientSessionData) {
 	l.Debug("successfully created empty Tangled profile on PDS and DB")
 }
 
-// create a session using apppasswords
-type session struct {
+// create a AppPasswordSession using apppasswords
+type AppPasswordSession struct {
 	AccessJwt   string `json:"accessJwt"`
 	PdsEndpoint string
 	Did         string
 }
 
-func (o *OAuth) createAppPasswordSession(appPassword, did string) (*session, error) {
+func CreateAppPasswordSession(res *idresolver.Resolver, appPassword, did string) (*AppPasswordSession, error) {
 	if appPassword == "" {
-		return nil, fmt.Errorf("no app password configured, skipping member addition")
+		return nil, fmt.Errorf("no app password configured")
 	}
 
-	resolved, err := o.IdResolver.ResolveIdent(context.Background(), did)
+	resolved, err := res.ResolveIdent(context.Background(), did)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve tangled.sh DID %s: %v", did, err)
 	}
@@ -290,7 +291,7 @@ func (o *OAuth) createAppPasswordSession(appPassword, did string) (*session, err
 		return nil, fmt.Errorf("failed to create session: HTTP %d", sessionResp.StatusCode)
 	}
 
-	var session session
+	var session AppPasswordSession
 	if err := json.NewDecoder(sessionResp.Body).Decode(&session); err != nil {
 		return nil, fmt.Errorf("failed to decode session response: %v", err)
 	}
@@ -301,7 +302,7 @@ func (o *OAuth) createAppPasswordSession(appPassword, did string) (*session, err
 	return &session, nil
 }
 
-func (s *session) putRecord(record any, collection string) error {
+func (s *AppPasswordSession) putRecord(record any, collection string) error {
 	recordBytes, err := json.Marshal(record)
 	if err != nil {
 		return fmt.Errorf("failed to marshal knot member record: %w", err)

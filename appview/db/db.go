@@ -596,6 +596,19 @@ func Make(ctx context.Context, dbPath string) (*DB, error) {
 			foreign key (webhook_id) references webhooks(id) on delete cascade
 		);
 
+		create table if not exists bluesky_posts (
+			rkey text primary key,
+			text text not null,
+			created_at text not null,
+			langs text,
+			facets text,
+			embed text,
+			like_count integer not null default 0,
+			reply_count integer not null default 0,
+			repost_count integer not null default 0,
+			quote_count integer not null default 0
+		);
+
 		create table if not exists migrations (
 			id integer primary key autoincrement,
 			name text unique

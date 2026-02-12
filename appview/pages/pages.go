@@ -339,6 +339,7 @@ type TimelineParams struct {
 	Timeline     []models.TimelineEvent
 	Repos        []models.Repo
 	GfiLabel     *models.LabelDefinition
+	BlueskyPosts []models.BskyPost
 }
 
 func (p *Pages) Timeline(w io.Writer, params TimelineParams) error {

@@ -12,6 +12,7 @@ import (
 
 	"tangled.org/core/api/tangled"
 	"tangled.org/core/appview"
+	"tangled.org/core/appview/bsky"
 	"tangled.org/core/appview/config"
 	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/indexer"
@@ -25,6 +26,7 @@ import (
 	"tangled.org/core/appview/reporesolver"
 	"tangled.org/core/appview/validator"
 	xrpcclient "tangled.org/core/appview/xrpcclient"
+	"tangled.org/core/consts"
 	"tangled.org/core/eventconsumer"
 	"tangled.org/core/idresolver"
 	"tangled.org/core/jetstream"
@@ -38,6 +40,7 @@ import (
 	atpclient "github.com/bluesky-social/indigo/atproto/client"
 	"github.com/bluesky-social/indigo/atproto/syntax"
 	lexutil "github.com/bluesky-social/indigo/lex/util"
+	"github.com/bluesky-social/indigo/xrpc"
 	securejoin "github.com/cyphar/filepath-securejoin"
 	"github.com/go-chi/chi/v5"
 	"github.com/posthog/posthog-go"
@@ -198,6 +201,9 @@ func Make(ctx context.Context, config *config.Config) (*State, error) {
 		logger,
 		validator,
 	}
+
+	// fetch initial bluesky posts if configured
+	go fetchBskyPosts(ctx, res, config, d, logger)
 
 	return state, nil
 }

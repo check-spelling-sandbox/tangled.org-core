@@ -100,6 +100,10 @@ type LabelConfig struct {
 	GoodFirstIssue   string   `env:"GFI, default=at://did:plc:wshs7t2adsemcrrd4snkeqli/sh.tangled.label.definition/good-first-issue"`
 }
 
+type BlueskyConfig struct {
+	UpdateInterval time.Duration `env:"UPDATE_INTERVAL, default=1h"`
+}
+
 func (cfg RedisConfig) ToURL() string {
 	u := &url.URL{
 		Scheme: "redis",
@@ -129,6 +133,7 @@ type Config struct {
 	Pds           PdsConfig       `env:",prefix=TANGLED_PDS_"`
 	Cloudflare    Cloudflare      `env:",prefix=TANGLED_CLOUDFLARE_"`
 	Label         LabelConfig     `env:",prefix=TANGLED_LABEL_"`
+	Bluesky       BlueskyConfig   `env:",prefix=TANGLED_BLUESKY_"`
 }
 
 func LoadConfig(ctx context.Context) (*Config, error) {
