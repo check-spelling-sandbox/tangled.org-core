@@ -1915,7 +1915,10 @@ func (s *Pulls) resubmitPullHelper(
 	record := pull.AsRecord()
 	record.PatchBlob = blob.Blob
 	record.CreatedAt = time.Now().Format(time.RFC3339)
-	record.Source.Sha = newSourceRev
+
+	if record.Source != nil {
+		record.Source.Sha = newSourceRev
+	}
 
 	_, err = comatproto.RepoPutRecord(r.Context(), client, &comatproto.RepoPutRecord_Input{
 		Collection: tangled.RepoPullNSID,
