@@ -3,30 +3,30 @@ title: Tangled docs
 author: The Tangled Contributors
 date: 21 Sun, Dec 2025
 abstract: |
-    Tangled is a decentralized code hosting and collaboration
-    platform. Every component of Tangled is open-source and
-    self-hostable. [tangled.org](https://tangled.org) also
-    provides hosting and CI services that are free to use.
+  Tangled is a decentralized code hosting and collaboration
+  platform. Every component of Tangled is open-source and
+  self-hostable. [tangled.org](https://tangled.org) also
+  provides hosting and CI services that are free to use.
 
-    There are several models for decentralized code
-    collaboration platforms, ranging from ActivityPub’s
-    (Forgejo) federated model, to Radicle’s entirely P2P model.
-    Our approach attempts to be the best of both worlds by
-    adopting the AT Protocol—a protocol for building decentralized
-    social applications with a central identity
+  There are several models for decentralized code
+  collaboration platforms, ranging from ActivityPub’s
+  (Forgejo) federated model, to Radicle’s entirely P2P model.
+  Our approach attempts to be the best of both worlds by
+  adopting the AT Protocol—a protocol for building decentralized
+  social applications with a central identity
 
-    Our approach to this is the idea of “knots”. Knots are
-    lightweight, headless servers that enable users to host Git
-    repositories with ease. Knots are designed for either single
-    or multi-tenant use which is perfect for self-hosting on a
-    Raspberry Pi at home, or larger “community” servers. By
-    default, Tangled provides managed knots where you can host
-    your repositories for free.
+  Our approach to this is the idea of “knots”. Knots are
+  lightweight, headless servers that enable users to host Git
+  repositories with ease. Knots are designed for either single
+  or multi-tenant use which is perfect for self-hosting on a
+  Raspberry Pi at home, or larger “community” servers. By
+  default, Tangled provides managed knots where you can host
+  your repositories for free.
 
-    The appview at tangled.org acts as a consolidated "view"
-    into the whole network, allowing users to access, clone and
-    contribute to repositories hosted across different knots
-    seamlessly.
+  The appview at tangled.org acts as a consolidated "view"
+  into the whole network, allowing users to access, clone and
+  contribute to repositories hosted across different knots
+  seamlessly.
 ---
 
 # Quick start guide
@@ -131,7 +131,7 @@ mkdir my-project
 cd my-project
 
 git init
-echo "# My Project" > README.md 
+echo "# My Project" > README.md
 ```
 
 Add some content and push!
@@ -313,13 +313,13 @@ Then, build the `knot` CLI. This is the knot administration
 and operation tool. For the purpose of this guide, we're
 only concerned with these subcommands:
 
- * `knot server`: the main knot server process, typically
-   run as a supervised service
- * `knot guard`: handles role-based access control for git
-   over SSH (you'll never have to run this yourself)
- * `knot keys`: fetches SSH keys associated with your knot;
-   we'll use this to generate the SSH
-   `AuthorizedKeysCommand`
+- `knot server`: the main knot server process, typically
+  run as a supervised service
+- `knot guard`: handles role-based access control for git
+  over SSH (you'll never have to run this yourself)
+- `knot keys`: fetches SSH keys associated with your knot;
+  we'll use this to generate the SSH
+  `AuthorizedKeysCommand`
 
 ```
 cd core
@@ -432,10 +432,10 @@ Right now, the database and repositories of your knot lives in `/home/git`. You
 can move these paths if you'd like to store them in another folder. Be careful
 when adjusting these paths:
 
-* Stop your knot when moving data (e.g. `systemctl stop knotserver`) to prevent
-any possible side effects. Remember to restart it once you're done.
-* Make backups before moving in case something goes wrong.
-* Make sure the `git` user can read and write from the new paths.
+- Stop your knot when moving data (e.g. `systemctl stop knotserver`) to prevent
+  any possible side effects. Remember to restart it once you're done.
+- Make backups before moving in case something goes wrong.
+- Make sure the `git` user can read and write from the new paths.
 
 #### Database
 
@@ -519,7 +519,7 @@ If you are unable to push to your knot or repository:
 2. Check to see that your knot has synced the key by running
    `knot keys`
 3. Check to see if git is supplying the correct private key
-   when pushing: `GIT_SSH_COMMAND="ssh -v" git push ...` 
+   when pushing: `GIT_SSH_COMMAND="ssh -v" git push ...`
 4. Check to see if `sshd` on the knot is rejecting the push
    for some reason: `journalctl -xeu ssh` (or `sshd`,
    depending on your machine). These logs are unavailable if
@@ -527,9 +527,9 @@ If you are unable to push to your knot or repository:
 5. Check to see if the knot itself is rejecting the push,
    depending on your setup, the logs might be in one of the
    following paths:
-    * `/tmp/knotguard.log`
-    * `/home/git/log`
-    * `/home/git/guard.log`
+   - `/tmp/knotguard.log`
+   - `/home/git/log`
+   - `/home/git/guard.log`
 
 # Spindles
 
@@ -847,26 +847,26 @@ project](https://tangled.org/@tangled.org/core/blob/master/.tangled/workflows/bu
 
 ### Prerequisites
 
-* Go
-* Docker (the only supported backend currently)
+- Go
+- Docker (the only supported backend currently)
 
 ### Configuration
 
 Spindle is configured using environment variables. The following environment variables are available:
 
-* `SPINDLE_SERVER_LISTEN_ADDR`: The address the server listens on (default: `"0.0.0.0:6555"`).
-* `SPINDLE_SERVER_DB_PATH`: The path to the SQLite database file (default: `"spindle.db"`).
-* `SPINDLE_SERVER_HOSTNAME`: The hostname of the server (required).
-* `SPINDLE_SERVER_JETSTREAM_ENDPOINT`: The endpoint of the Jetstream server (default: `"wss://jetstream1.us-west.bsky.network/subscribe"`).
-* `SPINDLE_SERVER_DEV`: A boolean indicating whether the server is running in development mode (default: `false`).
-* `SPINDLE_SERVER_OWNER`: The DID of the owner (required).
-* `SPINDLE_PIPELINES_NIXERY`: The Nixery URL (default: `"nixery.tangled.sh"`).
-* `SPINDLE_PIPELINES_WORKFLOW_TIMEOUT`: The default workflow timeout (default: `"5m"`).
-* `SPINDLE_PIPELINES_LOG_DIR`: The directory to store workflow logs (default: `"/var/log/spindle"`).
+- `SPINDLE_SERVER_LISTEN_ADDR`: The address the server listens on (default: `"0.0.0.0:6555"`).
+- `SPINDLE_SERVER_DB_PATH`: The path to the SQLite database file (default: `"spindle.db"`).
+- `SPINDLE_SERVER_HOSTNAME`: The hostname of the server (required).
+- `SPINDLE_SERVER_JETSTREAM_ENDPOINT`: The endpoint of the Jetstream server (default: `"wss://jetstream1.us-west.bsky.network/subscribe"`).
+- `SPINDLE_SERVER_DEV`: A boolean indicating whether the server is running in development mode (default: `false`).
+- `SPINDLE_SERVER_OWNER`: The DID of the owner (required).
+- `SPINDLE_PIPELINES_NIXERY`: The Nixery URL (default: `"nixery.tangled.sh"`).
+- `SPINDLE_PIPELINES_WORKFLOW_TIMEOUT`: The default workflow timeout (default: `"5m"`).
+- `SPINDLE_PIPELINES_LOG_DIR`: The directory to store workflow logs (default: `"/var/log/spindle"`).
 
 ### Running spindle
 
-1.  **Set the environment variables.**  For example:
+1.  **Set the environment variables.** For example:
 
     ```shell
     export SPINDLE_SERVER_HOSTNAME="your-hostname"
@@ -900,14 +900,14 @@ Spindle will now start, connect to the Jetstream server, and begin processing pi
 
 Spindle is a small CI runner service. Here's a high-level overview of how it operates:
 
-* Listens for [`sh.tangled.spindle.member`](/lexicons/spindle/member.json) and
-[`sh.tangled.repo`](/lexicons/repo.json) records on the Jetstream.
-* When a new repo record comes through (typically when you add a spindle to a
-repo from the settings), spindle then resolves the underlying knot and
-subscribes to repo events (see:
-[`sh.tangled.pipeline`](/lexicons/pipeline.json)).
-* The spindle engine then handles execution of the pipeline, with results and
-logs beamed on the spindle event stream over WebSocket
+- Listens for [`sh.tangled.spindle.member`](/lexicons/spindle/member.json) and
+  [`sh.tangled.repo`](/lexicons/repo.json) records on the Jetstream.
+- When a new repo record comes through (typically when you add a spindle to a
+  repo from the settings), spindle then resolves the underlying knot and
+  subscribes to repo events (see:
+  [`sh.tangled.pipeline`](/lexicons/pipeline.json)).
+- The spindle engine then handles execution of the pipeline, with results and
+  logs beamed on the spindle event stream over WebSocket
 
 ### The engine
 
@@ -1221,6 +1221,168 @@ bao write auth/approle/login \
     secret_id="$(cat /tmp/openbao/secret-id)"
 ```
 
+# Webhooks
+
+Webhooks allow you to receive HTTP POST notifications when events occur in your repositories. This enables you to integrate Tangled with external services, trigger CI/CD pipelines, send notifications, or automate workflows.
+
+## Overview
+
+Webhooks send HTTP POST requests to URLs you configure whenever specific events happen. Currently, Tangled supports push events, with more event types coming soon.
+
+## Configuring webhooks
+
+To set up a webhook for your repository:
+
+1. Navigate to your repository settings
+2. Click the "hooks" tab
+3. Click "add webhook"
+4. Configure your webhook:
+   - **Payload URL**: The endpoint that will receive the webhook POST requests
+   - **Secret**: An optional secret key for verifying webhook authenticity (auto-generated if left blank)
+   - **Events**: Select which events trigger the webhook (currently only push events)
+   - **Active**: Toggle whether the webhook is enabled
+
+## Webhook payload
+
+### Push
+
+When a push event occurs, Tangled sends a POST request with a JSON payload of the format:
+
+```json
+{
+  "after": "7b320e5cbee2734071e4310c1d9ae401d8f6cab5",
+  "before": "c04ddf64eddc90e4e2a9846ba3b43e67a0e2865e",
+  "pusher": { 
+    "did": "did:plc:hwevmowznbiukdf6uk5dwrrq" 
+  },
+  "ref": "refs/heads/main",
+  "repository": {
+    "clone_url": "https://tangled.org/did:plc:hwevmowznbiukdf6uk5dwrrq/some-repo",
+    "created_at": "2025-09-15T08:57:23Z",
+    "description": "an example repository",
+    "fork": false,
+    "full_name": "did:plc:hwevmowznbiukdf6uk5dwrrq/some-repo",
+    "html_url": "https://tangled.org/did:plc:hwevmowznbiukdf6uk5dwrrq/some-repo",
+    "name": "some-repo",
+    "open_issues_count": 5,
+    "owner": { 
+      "did": "did:plc:hwevmowznbiukdf6uk5dwrrq" 
+    },
+    "ssh_url": "ssh://git@tangled.org/did:plc:hwevmowznbiukdf6uk5dwrrq/some-repo",
+    "stars_count": 1,
+    "updated_at": "2025-09-15T08:57:23Z"
+  }
+}
+```
+
+## HTTP headers
+
+Each webhook request includes the following headers:
+
+- `Content-Type: application/json`
+- `User-Agent: Tangled-Hook/<short-sha>` — User agent with short SHA of the commit
+- `X-Tangled-Event: push` — The event type
+- `X-Tangled-Hook-ID: <webhook-id>` — The webhook ID
+- `X-Tangled-Delivery: <uuid>` — Unique delivery ID
+- `X-Tangled-Signature-256: sha256=<hmac>` — HMAC-SHA256 signature (if secret configured)
+
+## Verifying webhook signatures
+
+If you configured a secret, you should verify the webhook signature to ensure requests are authentic. For example, in Go:
+
+```go
+package main
+
+import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/hex"
+    "io"
+    "net/http"
+    "strings"
+)
+
+func verifySignature(payload []byte, signatureHeader, secret string) bool {
+    // Remove 'sha256=' prefix from signature header
+    signature := strings.TrimPrefix(signatureHeader, "sha256=")
+    
+    // Compute expected signature
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write(payload)
+    expected := hex.EncodeToString(mac.Sum(nil))
+    
+    // Use constant-time comparison to prevent timing attacks
+    return hmac.Equal([]byte(signature), []byte(expected))
+}
+
+func webhookHandler(w http.ResponseWriter, r *http.Request) {
+    // Read the request body
+    payload, err := io.ReadAll(r.Body)
+    if err != nil {
+        http.Error(w, "Bad request", http.StatusBadRequest)
+        return
+    }
+    
+    // Get signature from header
+    signatureHeader := r.Header.Get("X-Tangled-Signature-256")
+    
+    // Verify signature
+    if signatureHeader != "" && verifySignature(payload, signatureHeader, yourSecret) {
+        // Webhook is authentic, process it
+        processWebhook(payload)
+        w.WriteHeader(http.StatusOK)
+    } else {
+        http.Error(w, "Invalid signature", http.StatusUnauthorized)
+    }
+}
+```
+
+## Delivery retries
+
+Webhooks are automatically retried on failure:
+
+- **3 total attempts** (1 initial + 2 retries)
+- **Exponential backoff** starting at 1 second, max 10 seconds
+- **Retried on**:
+  - Network errors
+  - HTTP 5xx server errors
+- **Not retried on**:
+  - HTTP 4xx client errors (bad request, unauthorized, etc.)
+
+### Timeouts
+
+Webhook requests timeout after 30 seconds. If your endpoint needs more time:
+
+1. Respond with 200 OK immediately
+2. Process the webhook asynchronously in the background
+
+## Example integrations
+
+### Discord notifications
+
+```javascript
+app.post("/webhook", (req, res) => {
+  const payload = req.body;
+
+  fetch("https://discord.com/api/webhooks/...", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content: `New push to ${payload.repository.full_name}`,
+      embeds: [
+        {
+          title: `${payload.pusher.did} pushed to ${payload.ref}`,
+          url: payload.repository.html_url,
+          color: 0x00ff00,
+        },
+      ],
+    }),
+  });
+
+  res.status(200).send("OK");
+});
+```
+
 # Migrating knots and spindles
 
 Sometimes, non-backwards compatible changes are made to the
@@ -1356,41 +1518,41 @@ quite cumbersome. So the Nix flake provides a
 <details>
   <summary><strong>macOS users will have to set up a Nix Builder first</strong></summary>
 
-  In order to build Tangled's dev VM on macOS, you will
-  first need to set up a Linux Nix builder. The recommended
-  way to do so is to run a [`darwin.linux-builder`
-  VM](https://nixos.org/manual/nixpkgs/unstable/#sec-darwin-builder)
-  and to register it in `nix.conf` as a builder for Linux
-  with the same architecture as your Mac (`linux-aarch64` if
-  you are using Apple Silicon).
+In order to build Tangled's dev VM on macOS, you will
+first need to set up a Linux Nix builder. The recommended
+way to do so is to run a [`darwin.linux-builder`
+VM](https://nixos.org/manual/nixpkgs/unstable/#sec-darwin-builder)
+and to register it in `nix.conf` as a builder for Linux
+with the same architecture as your Mac (`linux-aarch64` if
+you are using Apple Silicon).
 
-  > IMPORTANT: You must build `darwin.linux-builder` somewhere other than inside
-  > the Tangled repo so that it doesn't conflict with the other VM. For example,
-  > you can do
-  >
-  > ```shell
-  > cd $(mktemp -d buildervm.XXXXX) && nix run nixpkgs#darwin.linux-builder
-  > ```
-  >
-  > to store the builder VM in a temporary dir.
-  >
-  > You should read and follow [all the other intructions][darwin builder vm] to
-  >  avoid subtle problems.
+> IMPORTANT: You must build `darwin.linux-builder` somewhere other than inside
+> the Tangled repo so that it doesn't conflict with the other VM. For example,
+> you can do
+>
+> ```shell
+> cd $(mktemp -d buildervm.XXXXX) && nix run nixpkgs#darwin.linux-builder
+> ```
+>
+> to store the builder VM in a temporary dir.
+>
+> You should read and follow [all the other intructions][darwin builder vm] to
+> avoid subtle problems.
 
-  Alternatively, you can use any other method to set up a
-  Linux machine with Nix installed that you can `sudo ssh`
-  into (in other words, root user on your Mac has to be able
-  to ssh into the Linux machine without entering a password)
-  and that has the same architecture as your Mac. See
-  [remote builder
-  instructions](https://nix.dev/manual/nix/2.28/advanced-topics/distributed-builds.html#requirements)
-  for how to register such a builder in `nix.conf`.
+Alternatively, you can use any other method to set up a
+Linux machine with Nix installed that you can `sudo ssh`
+into (in other words, root user on your Mac has to be able
+to ssh into the Linux machine without entering a password)
+and that has the same architecture as your Mac. See
+[remote builder
+instructions](https://nix.dev/manual/nix/2.28/advanced-topics/distributed-builds.html#requirements)
+for how to register such a builder in `nix.conf`.
 
-  > WARNING: If you'd like to use
-  > [`nixos-lima`](https://github.com/nixos-lima/nixos-lima) or
-  > [Orbstack](https://orbstack.dev/), note that setting them up so that `sudo
-  > ssh` works can be tricky. It seems to be [possible with
-  > Orbstack](https://github.com/orgs/orbstack/discussions/1669).
+> WARNING: If you'd like to use
+> [`nixos-lima`](https://github.com/nixos-lima/nixos-lima) or
+> [Orbstack](https://orbstack.dev/), note that setting them up so that `sudo
+ssh` works can be tricky. It seems to be [possible with
+> Orbstack](https://github.com/orgs/orbstack/discussions/1669).
 
 </details>
 
@@ -1463,9 +1625,9 @@ services in the VM, modify [nix/vm.nix](/nix/vm.nix) and set
 
 We follow a commit style similar to the Go project. Please keep commits:
 
-* **atomic**: each commit should represent one logical change
-* **descriptive**: the commit message should clearly describe what the
-change does and why it's needed
+- **atomic**: each commit should represent one logical change
+- **descriptive**: the commit message should clearly describe what the
+  change does and why it's needed
 
 ### Message format
 
@@ -1491,27 +1653,26 @@ token invalidation.
 knotserver/git/service: improve error checking in upload-pack
 ```
 
-
 ### General notes
 
 - PRs get merged "as-is" (fast-forward)—like applying a patch-series
-using `git am`. At present, there is no squashing—so please author
-your commits as they would appear on `master`, following the above
-guidelines.
+  using `git am`. At present, there is no squashing—so please author
+  your commits as they would appear on `master`, following the above
+  guidelines.
 - If there is a lot of nesting, for example "appview:
-pages/templates/repo/fragments: ...", these can be truncated down to
-just "appview: repo/fragments: ...". If the change affects a lot of
-subdirectories, you may abbreviate to just the top-level names, e.g.
-"appview: ..." or "knotserver: ...".
+  pages/templates/repo/fragments: ...", these can be truncated down to
+  just "appview: repo/fragments: ...". If the change affects a lot of
+  subdirectories, you may abbreviate to just the top-level names, e.g.
+  "appview: ..." or "knotserver: ...".
 - Keep commits lowercased with no trailing period.
 - Use the imperative mood in the summary line (e.g., "fix bug" not
-"fixed bug" or "fixes bug").
+  "fixed bug" or "fixes bug").
 - Try to keep the summary line under 72 characters, but we aren't too
-fussed about this.
+  fussed about this.
 - Follow the same formatting for PR titles if filled manually.
 - Don't include unrelated changes in the same commit.
 - Avoid noisy commit messages like "wip" or "final fix"—rewrite history
-before submitting if necessary.
+  before submitting if necessary.
 
 ## Code formatting
 
@@ -1601,8 +1762,8 @@ self-hosted PDS:
 
 - You may need to ensure that your PDS is timesynced using
   NTP:
-  * Enable the `ntpd` service
-  * Run `ntpd -qg` to synchronize your clock
+  - Enable the `ntpd` service
+  - Run `ntpd -qg` to synchronize your clock
 - You may need to increase the default request timeout:
   `NODE_OPTIONS="--network-family-autoselection-attempt-timeout=500"`
 
