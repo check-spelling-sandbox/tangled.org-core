@@ -204,3 +204,49 @@ func TestWhitespaceNormalization(t *testing.T) {
 	q := Parse("   state:open   keyword   ")
 	assert.Equal(t, "state:open keyword", q.String())
 }
+
+func TestParseConsecutiveColons(t *testing.T) {
+	q := Parse("foo:::bar")
+	items := q.Items()
+	assert.Equal(t, 1, len(items))
+	assert.Equal(t, KindTagValue, items[0].Kind)
+	assert.Equal(t, "foo", items[0].Key)
+	assert.Equal(t, "::bar", items[0].Value)
+}
+
+func TestParseEmptyQuotes(t *testing.T) {
+	q := Parse(`""`)
+	items := q.Items()
+	assert.Equal(t, 1, len(items))
+	assert.Equal(t, KindQuoted, items[0].Kind)
+	assert.Equal(t, `""`, items[0].Raw)
+	assert.Equal(t, "", items[0].Value)
+}
+
+func TestParseBareDash(t *testing.T) {
+	q := Parse("-")
+	items := q.Items()
+	assert.Equal(t, 1, len(items))
+	assert.Equal(t, KindKeyword, items[0].Kind)
+	assert.False(t, items[0].Negated)
+	assert.Equal(t, "-", items[0].Raw)
+}
+
+func TestParseDashColon(t *testing.T) {
+	q := Parse("-:value")
+	items := q.Items()
+	assert.Equal(t, 1, len(items))
+	assert.Equal(t, KindKeyword, items[0].Kind)
+	assert.True(t, items[0].Negated)
+	assert.Equal(t, ":value", items[0].Value)
+}
+
+func TestParseDoubleHyphen(t *testing.T) {
+	q := Parse("--label:bug")
+	items := q.Items()
+	assert.Equal(t, 1, len(items))
+	assert.Equal(t, KindTagValue, items[0].Kind)
+	assert.True(t, items[0].Negated)
+	assert.Equal(t, "-label", items[0].Key)
+	assert.Equal(t, "bug", items[0].Value)
+}
