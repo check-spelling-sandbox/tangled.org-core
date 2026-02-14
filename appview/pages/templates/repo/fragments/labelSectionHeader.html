@@ -4,7 +4,7 @@
     {{ template "repo/fragments/labelSectionHeaderText" .Name }}
     {{ if (or .RepoInfo.Roles.IsOwner .RepoInfo.Roles.IsCollaborator) }}
       <a
-        class="text-gray-500 dark:text-gray-400 flex gap-1 items-center group"
+        class="text-gray-500 dark:text-gray-400 flex gap-1 items-center group cursor-pointer"
         hx-get="/{{ .RepoInfo.FullName }}/label/edit"
         hx-vals='{"subject": "{{.Subject}}"}'
         hx-swap="outerHTML"
