@@ -64,11 +64,15 @@ func (rp *Repo) Index(w http.ResponseWriter, r *http.Request) {
 				RepoInfo:         rp.repoResolver.GetRepoInfo(r, user),
 			})
 			return
+		} else {
+			l.Error("failed to build index response", "err", err)
+			rp.pages.RepoIndexPage(w, pages.RepoIndexParams{
+				LoggedInUser:    user,
+				KnotUnreachable: true,
+				RepoInfo:        rp.repoResolver.GetRepoInfo(r, user),
+			})
+			return
 		}
-
-		rp.pages.Error503(w)
-		l.Error("failed to build index response", "err", err)
-		return
 	}
 
 	tagMap := make(map[string][]string)
@@ -299,9 +303,7 @@ func (rp *Repo) buildIndexResponse(ctx context.Context, xrpcc *indigoxrpc.Client
 	)
 
 	// tags
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		tagsBytes, err := tangled.RepoTags(ctx, xrpcc, "", 0, didSlashRepo)
 		if err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to call repoTags: %w", err))
@@ -311,24 +313,20 @@ func (rp *Repo) buildIndexResponse(ctx context.Context, xrpcc *indigoxrpc.Client
 		if err := json.Unmarshal(tagsBytes, &tagsResp); err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to unmarshal repoTags: %w", err))
 		}
-	}()
+	})
 
 	// tree/files
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		resp, err := tangled.RepoTree(ctx, xrpcc, "", ref, didSlashRepo)
 		if err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to call repoTree: %w", err))
 			return
 		}
 		treeResp = resp
-	}()
+	})
 
 	// commits
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		logBytes, err := tangled.RepoLog(ctx, xrpcc, "", 50, "", ref, didSlashRepo)
 		if err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to call repoLog: %w", err))
@@ -338,7 +336,7 @@ func (rp *Repo) buildIndexResponse(ctx context.Context, xrpcc *indigoxrpc.Client
 		if err := json.Unmarshal(logBytes, &logResp); err != nil {
 			errs = errors.Join(errs, fmt.Errorf("failed to unmarshal repoLog: %w", err))
 		}
-	}()
+	})
 
 	wg.Wait()
 

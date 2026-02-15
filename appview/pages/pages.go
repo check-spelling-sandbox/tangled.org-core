@@ -697,6 +697,7 @@ type RepoIndexParams struct {
 	Languages        []types.RepoLanguageDetails
 	Pipelines        map[string]models.Pipeline
 	NeedsKnotUpgrade bool
+	KnotUnreachable  bool
 	types.RepoIndexResponse
 }
 
@@ -708,6 +709,10 @@ func (p *Pages) RepoIndexPage(w io.Writer, params RepoIndexParams) error {
 
 	if params.NeedsKnotUpgrade {
 		return p.executeRepo("repo/needsUpgrade", w, params)
+	}
+
+	if params.KnotUnreachable {
+		return p.executeRepo("repo/knotUnreachable", w, params)
 	}
 
 	p.rctx.RepoInfo = params.RepoInfo

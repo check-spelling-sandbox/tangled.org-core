@@ -190,14 +190,10 @@ func (rp *Repo) generalSettings(w http.ResponseWriter, r *http.Request) {
 
 	repo := fmt.Sprintf("%s/%s", f.Did, f.Name)
 	xrpcBytes, err := tangled.RepoBranches(r.Context(), xrpcc, "", 0, repo)
+	var result types.RepoBranchesResponse
 	if xrpcerr := xrpcclient.HandleXrpcErr(err); xrpcerr != nil {
 		l.Error("failed to call XRPC repo.branches", "err", xrpcerr)
-		rp.pages.Error503(w)
-		return
-	}
-
-	var result types.RepoBranchesResponse
-	if err := json.Unmarshal(xrpcBytes, &result); err != nil {
+	} else if err := json.Unmarshal(xrpcBytes, &result); err != nil {
 		l.Error("failed to decode XRPC response", "err", err)
 		rp.pages.Error503(w)
 		return
