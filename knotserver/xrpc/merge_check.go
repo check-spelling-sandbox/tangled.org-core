@@ -53,6 +53,7 @@ func (x *Xrpc) MergeCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mo := git.MergeOptions{}
+	mo.CommitMessage = "merge check"
 	mo.CommitterName = x.Config.Git.UserName
 	mo.CommitterEmail = x.Config.Git.UserEmail
 	mo.FormatPatch = patchutil.IsFormatPatch(data.Patch)
