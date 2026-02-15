@@ -763,9 +763,9 @@ func (s *State) UploadProfileAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	if header.Size > 1000000 {
+	if header.Size > 5000000 {
 		l.Warn("avatar file too large", "size", header.Size)
-		s.pages.Notice(w, "avatar-error", "Avatar file too large (max 1MB)")
+		s.pages.Notice(w, "avatar-error", "Avatar file too large (max 5MB)")
 		return
 	}
 

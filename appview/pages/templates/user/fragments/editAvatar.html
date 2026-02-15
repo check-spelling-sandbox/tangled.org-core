@@ -7,7 +7,7 @@
   <label for="avatar-file" class="uppercase p-0">
     Upload or Remove Avatar
   </label>
-  <p class="text-sm text-gray-500 dark:text-gray-400">Upload a new image (PNG or JPEG, max 1MB) or remove your current avatar.</p>
+  <p class="text-sm text-gray-500 dark:text-gray-400">Upload a new image (PNG or JPEG, max 5MB) or remove your current avatar.</p>
   <input
     type="file"
     id="avatar-file"
@@ -23,7 +23,7 @@
       hover:file:bg-gray-200 dark:hover:file:bg-gray-600" />
   <div class="flex flex-col gap-2 pt-2">
     <button type="submit" class="btn w-full flex items-center justify-center gap-2">
-        {{ i "upload" "size-4 inline group-[.htmx-request]/form:hidden" }} 
+        {{ i "upload" "size-4 inline group-[.htmx-request]/form:hidden" }}
         {{ i "loader-circle" "size-4 animate-spin hidden group-[.htmx-request]/form:inline" }}
         upload
     </button>
