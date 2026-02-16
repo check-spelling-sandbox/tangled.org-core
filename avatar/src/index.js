@@ -244,14 +244,14 @@ You can't use this directly unfortunately since all requests are signed and may 
       let avatarResponse;
       if (resizeToTiny) {
         avatarResponse = await fetch(avatarUrl, {
-          cf: {
-            image: {
-              width: 32,
-              height: 32,
-              fit: "cover",
-              format: "webp",
-            },
-          },
+          // cf: {
+          //   image: {
+          //     width: 32,
+          //     height: 32,
+          //     fit: "cover",
+          //     format: "webp",
+          //   },
+          // },
         });
       } else {
         avatarResponse = await fetch(avatarUrl);
