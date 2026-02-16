@@ -43,7 +43,7 @@ func New(config *config.Config, ph posthog.Client, db *db.DB, enforcer *rbac.Enf
 		callbackUri := clientUri + "/oauth/callback"
 		oauthConfig = oauth.NewLocalhostConfig(callbackUri, TangledScopes)
 	} else {
-		clientUri = config.Core.AppviewHost
+		clientUri = "https://" + config.Core.AppviewHost
 		clientId := fmt.Sprintf("%s/oauth/client-metadata.json", clientUri)
 		callbackUri := clientUri + "/oauth/callback"
 		oauthConfig = oauth.NewPublicConfig(clientId, callbackUri, TangledScopes)
