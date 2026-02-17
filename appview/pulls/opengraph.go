@@ -10,15 +10,13 @@ import (
 	"log"
 	"net/http"
 
-	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/models"
 	"tangled.org/core/appview/ogcard"
-	"tangled.org/core/orm"
 	"tangled.org/core/patchutil"
 	"tangled.org/core/types"
 )
 
-func (s *Pulls) drawPullSummaryCard(pull *models.Pull, repo *models.Repo, commentCount int, diffStats types.DiffFileStat, filesChanged int) (*ogcard.Card, error) {
+func (s *Pulls) drawPullSummaryCard(pull *models.Pull, repo *models.Repo, diffStats types.DiffFileStat, filesChanged int) (*ogcard.Card, error) {
 	width, height := ogcard.DefaultSize()
 	mainCard, err := ogcard.NewCard(width, height)
 	if err != nil {
@@ -194,6 +192,7 @@ func (s *Pulls) drawPullSummaryCard(pull *models.Pull, repo *models.Repo, commen
 	}
 
 	currentX += iconSize + 15
+	commentCount := pull.TotalComments()
 	commentText := fmt.Sprintf("%d comments", commentCount)
 	if commentCount == 1 {
 		commentText = "1 comment"
@@ -284,25 +283,18 @@ func (s *Pulls) PullOpenGraphSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get comment count from database
-	comments, err := db.GetPullComments(s.db, orm.FilterEq("pull_id", pull.ID))
-	if err != nil {
-		log.Printf("failed to get pull comments: %v", err)
-	}
-	commentCount := len(comments)
-
 	// Calculate diff stats from latest submission using patchutil
 	var diffStats types.DiffFileStat
 	filesChanged := 0
 	if len(pull.Submissions) > 0 {
-		latestSubmission := pull.Submissions[len(pull.Submissions)-1]
+		latestSubmission := pull.LatestSubmission()
 		niceDiff := patchutil.AsNiceDiff(latestSubmission.Patch, pull.TargetBranch)
 		diffStats.Insertions = int64(niceDiff.Stat.Insertions)
 		diffStats.Deletions = int64(niceDiff.Stat.Deletions)
 		filesChanged = niceDiff.Stat.FilesChanged
 	}
 
-	card, err := s.drawPullSummaryCard(pull, f, commentCount, diffStats, filesChanged)
+	card, err := s.drawPullSummaryCard(pull, f, diffStats, filesChanged)
 	if err != nil {
 		log.Println("failed to draw pull summary card", err)
 		http.Error(w, "failed to draw pull summary card", http.StatusInternalServerError)
