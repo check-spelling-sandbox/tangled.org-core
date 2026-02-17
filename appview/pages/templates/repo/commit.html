@@ -1,7 +1,11 @@
-{{ define "title" }} commit {{ .Diff.Commit.This }} &middot; {{ .RepoInfo.FullName }} {{ end }}
+{{ define "title" }}
+  {{ $messageParts := splitN .Diff.Commit.Message "\n\n" 2 }}
+  {{ index $messageParts 0 }} &middot; {{ .RepoInfo.FullName }}@{{ slice .Diff.Commit.This 0 7 }}
+{{ end }}
 
 {{ define "extrameta" }}
-    {{ $title := printf "commit %s &middot; %s" .Diff.Commit.This .RepoInfo.FullName }}
+    {{ $messageParts := splitN .Diff.Commit.Message "\n\n" 2 }}
+    {{ $title := printf "%s &middot; %s@%s" (index $messageParts 0) .RepoInfo.FullName (slice .Diff.Commit.This 0 7) }}
     {{ $url := printf "https://tangled.org/%s/commit/%s" .RepoInfo.FullName .Diff.Commit.This }}
 
     {{ template "repo/fragments/og" (dict "RepoInfo" .RepoInfo "Title" $title "Url" $url) }}
