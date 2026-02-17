@@ -239,6 +239,7 @@ in
               advertisePushOptions = true
           [uploadpack]
               allowFilter = true
+              allowReachableSHA1InWant = true
           EOF
           ${setMotd}
           chown -R ${cfg.gitUser}:${cfg.gitUser} "${cfg.stateDir}"
