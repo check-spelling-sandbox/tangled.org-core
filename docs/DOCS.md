@@ -680,6 +680,9 @@ key-value map, with the key being the registry to fetch
 dependencies from, and the value being the list of
 dependencies to fetch.
 
+The registry URL syntax can be found [on the nix
+manual](https://nix.dev/manual/nix/2.18/command-ref/new-cli/nix3-registry-add).
+
 Say you want to fetch Node.js and Go from `nixpkgs`, and a
 package called `my_pkg` you've made from your own registry
 at your repository at
