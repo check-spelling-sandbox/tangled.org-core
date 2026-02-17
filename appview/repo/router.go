@@ -93,6 +93,7 @@ func (rp *Repo) Router(mw *middleware.Middleware) http.Handler {
 				r.Put("/{id}", rp.UpdateWebhook)
 				r.Delete("/{id}", rp.DeleteWebhook)
 				r.Post("/{id}/toggle", rp.ToggleWebhook)
+				r.Get("/{id}/deliveries", rp.WebhookDeliveries)
 			})
 		})
 	})

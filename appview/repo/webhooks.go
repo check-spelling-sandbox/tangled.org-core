@@ -31,10 +31,23 @@ func (rp *Repo) Webhooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// fetch recent deliveries for each webhook
+	deliveriesMap := make(map[int64][]models.WebhookDelivery)
+	for _, webhook := range webhooks {
+		deliveries, err := db.GetWebhookDeliveries(rp.db, webhook.Id, 4)
+		if err != nil {
+			l.Error("failed to get webhook deliveries", "webhook_id", webhook.Id, "err", err)
+			// continue even if we can't get deliveries for one webhook
+			continue
+		}
+		deliveriesMap[webhook.Id] = deliveries
+	}
+
 	rp.pages.RepoWebhooksSettings(w, pages.RepoWebhooksSettingsParams{
-		LoggedInUser: user,
-		RepoInfo:     rp.repoResolver.GetRepoInfo(r, user),
-		Webhooks:     webhooks,
+		LoggedInUser:      user,
+		RepoInfo:          rp.repoResolver.GetRepoInfo(r, user),
+		Webhooks:          webhooks,
+		WebhookDeliveries: deliveriesMap,
 	})
 }
 
@@ -301,4 +314,54 @@ func (rp *Repo) ToggleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rp.pages.HxRefresh(w)
+}
+
+// WebhookDeliveries returns all deliveries for a webhook (for modal display)
+func (rp *Repo) WebhookDeliveries(w http.ResponseWriter, r *http.Request) {
+	l := rp.logger.With("handler", "WebhookDeliveries")
+
+	f, err := rp.repoResolver.Resolve(r)
+	if err != nil {
+		l.Error("failed to get repo and knot", "err", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		l.Error("invalid webhook id", "err", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	webhook, err := db.GetWebhook(rp.db, id)
+	if err != nil {
+		l.Error("failed to get webhook", "err", err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	// Verify webhook belongs to this repo
+	if webhook.RepoAt != f.RepoAt() {
+		l.Error("webhook does not belong to repo", "webhook_repo", webhook.RepoAt, "current_repo", f.RepoAt())
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	deliveries, err := db.GetWebhookDeliveries(rp.db, webhook.Id, 100)
+	if err != nil {
+		l.Error("failed to get webhook deliveries", "err", err)
+		rp.pages.Notice(w, "webhooks-error", "Failed to load deliveries")
+		return
+	}
+
+	user := rp.oauth.GetMultiAccountUser(r)
+
+	rp.pages.WebhookDeliveriesList(w, pages.WebhookDeliveriesListParams{
+		LoggedInUser: user,
+		RepoInfo:     rp.repoResolver.GetRepoInfo(r, user),
+		Webhook:      webhook,
+		Deliveries:   deliveries,
+	})
 }
