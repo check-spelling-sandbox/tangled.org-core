@@ -965,17 +965,33 @@ func (p *Pages) RepoPipelineSettings(w io.Writer, params RepoPipelineSettingsPar
 }
 
 type RepoWebhooksSettingsParams struct {
-	LoggedInUser *oauth.MultiAccountUser
-	RepoInfo     repoinfo.RepoInfo
-	Active       string
-	Tab          string
-	Webhooks     []models.Webhook
+	LoggedInUser      *oauth.MultiAccountUser
+	RepoInfo          repoinfo.RepoInfo
+	Active            string
+	Tab               string
+	Webhooks          []models.Webhook
+	WebhookDeliveries map[int64][]models.WebhookDelivery
 }
 
 func (p *Pages) RepoWebhooksSettings(w io.Writer, params RepoWebhooksSettingsParams) error {
 	params.Active = "settings"
 	params.Tab = "hooks"
 	return p.executeRepo("repo/settings/hooks", w, params)
+}
+
+type WebhookDeliveriesListParams struct {
+	LoggedInUser *oauth.MultiAccountUser
+	RepoInfo     repoinfo.RepoInfo
+	Webhook      *models.Webhook
+	Deliveries   []models.WebhookDelivery
+}
+
+func (p *Pages) WebhookDeliveriesList(w io.Writer, params WebhookDeliveriesListParams) error {
+	tpl, err := p.parse("repo/settings/fragments/webhookDeliveries")
+	if err != nil {
+		return err
+	}
+	return tpl.ExecuteTemplate(w, "repo/settings/fragments/webhookDeliveries", params)
 }
 
 type RepoIssuesParams struct {

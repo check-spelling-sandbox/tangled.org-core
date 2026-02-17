@@ -82,8 +82,9 @@
             </div>
           {{ end }}
         </div>
+
         {{ if $.RepoInfo.Roles.IsOwner }}
-        <div class="flex items-center">
+        <div class="flex items-center mt-2">
           <label class="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
@@ -95,6 +96,75 @@
             <span class="text-sm">Active</span>
           </label>
         </div>
+        {{ end }}
+
+        <!-- Recent Deliveries -->
+        {{ $deliveries := index $.WebhookDeliveries .Id }}
+        {{ if $deliveries }}
+          <div class="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase">Recent Deliveries</h4>
+            </div>
+            <div class="flex flex-col gap-2">
+              {{ range $deliveries }}
+                <div class="flex items-center gap-3 text-xs p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                  {{ if .Success }}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                      {{ i "circle-check" "size-3" }}
+                      {{ .ResponseCode }}
+                    </span>
+                  {{ else }}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                      {{ i "circle-x" "size-3" }}
+                      {{ if .ResponseCode }}{{ .ResponseCode }}{{ else }}failed{{ end }}
+                    </span>
+                  {{ end }}
+                  <span class="flex-1 font-mono text-gray-600 dark:text-gray-400 truncate">
+                    {{ .DeliveryId }}
+                  </span>
+                  <span class="text-gray-500 dark:text-gray-400">
+                    {{ .Event }}
+                  </span>
+                  <span class="text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                    {{ .CreatedAt.Format "Jan 02, 15:04" }}
+                  </span>
+                </div>
+              {{ end }}
+            </div>
+            <div class="mt-2">
+              <button
+                class="btn text-xs flex items-center gap-1"
+                hx-get="/{{ $.RepoInfo.FullName }}/settings/hooks/{{ .Id }}/deliveries"
+                hx-target="#webhook-deliveries-modal-{{ .Id }}"
+                hx-swap="innerHTML"
+                popovertarget="webhook-deliveries-modal-{{ .Id }}"
+                popovertargetaction="toggle"
+              >
+                {{ i "list" "size-3" }}
+                show all
+              </button>
+            </div>
+          </div>
+        {{ else }}
+          <div class="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3">
+            <div class="text-xs text-gray-500 dark:text-gray-400 text-center py-2">
+              No deliveries yet
+            </div>
+          </div>
+        {{ end }}
+
+        <!-- Deliveries Modal -->
+        <div
+          id="webhook-deliveries-modal-{{ .Id }}"
+          popover
+          class="bg-white w-full sm:w-[50rem] dark:bg-gray-800 p-6 max-h-dvh overflow-y-auto rounded border border-gray-200 dark:border-gray-700 drop-shadow dark:text-white backdrop:bg-gray-400/50 dark:backdrop:bg-gray-800/50"
+        >
+          <div class="flex items-center justify-center p-4">
+            {{ i "loader-circle" "size-6 animate-spin" }}
+          </div>
+        </div>
+
+        {{ if $.RepoInfo.Roles.IsOwner }}
         <div
           id="edit-webhook-modal-{{.Id}}"
           popover

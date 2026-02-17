@@ -1,0 +1,74 @@
+{{define "repo/settings/fragments/webhookDeliveries"}}
+<div class="flex flex-col gap-4">
+  <div class="flex items-center justify-between">
+    <h3 class="text-lg font-bold uppercase text-sm">Recent Deliveries</h3>
+    <button
+      type="button"
+      onclick="this.closest('[popover]').hidePopover()"
+      class="btn text-sm flex items-center gap-1"
+    >
+      {{ i "x" "size-4" }} close
+    </button>
+  </div>
+
+  <div class="text-sm text-gray-600 dark:text-gray-400">
+    <span class="font-mono break-all">{{ .Webhook.Url }}</span>
+  </div>
+
+  {{ if .Deliveries }}
+    <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded max-h-[60vh] overflow-y-auto">
+      {{ range .Deliveries }}
+        <details class="group">
+          <summary class="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer list-none">
+            <div class="flex items-center gap-2 mb-2">
+              {{ if .Success }}
+                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  {{ i "circle-check" "size-3" }}
+                  {{ .ResponseCode }}
+                </span>
+              {{ else }}
+                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                  {{ i "circle-x" "size-3" }}
+                  {{ if .ResponseCode }}{{ .ResponseCode }}{{ else }}failed{{ end }}
+                </span>
+              {{ end }}
+              <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                {{ .DeliveryId }}
+              </span>
+              <span class="ml-auto text-xs text-gray-400 dark:text-gray-500 group-open:rotate-180 transition-transform">
+                {{ i "chevron-down" "size-4" }}
+              </span>
+            </div>
+            <div class="text-sm text-gray-700 dark:text-gray-300 mb-1">
+              <span class="font-semibold">Event:</span> {{ .Event }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ .CreatedAt.Format "2006-01-02 15:04:05 MST" }}
+            </div>
+          </summary>
+
+          <div class="px-4 pb-4 pt-2 bg-gray-50 dark:bg-gray-800/50">
+            <div class="flex flex-col gap-3 text-sm">
+              <div class="flex flex-col gap-2">
+                <h5 class="font-semibold text-gray-700 dark:text-gray-300">Request Body</h5>
+                <pre class="bg-white dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto border border-gray-200 dark:border-gray-700">{{ .RequestBody }}</pre>
+              </div>
+
+              {{ if .ResponseBody }}
+                <div class="flex flex-col gap-2">
+                  <h5 class="font-semibold text-gray-700 dark:text-gray-300">Response Body</h5>
+                  <pre class="bg-white dark:bg-gray-900 p-3 rounded text-xs overflow-x-auto border border-gray-200 dark:border-gray-700">{{ .ResponseBody }}</pre>
+                </div>
+              {{ end }}
+            </div>
+          </div>
+        </details>
+      {{ end }}
+    </div>
+  {{ else }}
+    <div class="flex items-center justify-center p-8 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded">
+      No deliveries yet
+    </div>
+  {{ end }}
+</div>
+{{end}}
