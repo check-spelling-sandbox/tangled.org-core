@@ -34,7 +34,9 @@ func (g *GitRepo) Tags(opts *TagsOptions) ([]object.Tag, error) {
 		"taggername",
 		"taggeremail",
 		"taggerdate:unix",
-		"contents",
+		"contents:subject",
+		"contents:body",
+		"contents:signature",
 	}
 
 	var outFormat strings.Builder
@@ -95,7 +97,19 @@ func (g *GitRepo) Tags(opts *TagsOptions) ([]object.Tag, error) {
 		taggerName := parts[5]
 		taggerEmail := parts[6]
 		taggerDate := parts[7]
-		message := parts[8]
+		subject := parts[8]
+		body := parts[9]
+		signature := parts[10]
+
+		// combine subject and body for the message
+		var message string
+		if subject != "" && body != "" {
+			message = subject + "\n\n" + body
+		} else if subject != "" {
+			message = subject
+		} else {
+			message = body
+		}
 
 		// parse creation time
 		var createdAt time.Time
@@ -120,9 +134,10 @@ func (g *GitRepo) Tags(opts *TagsOptions) ([]object.Tag, error) {
 				Email: taggerEmail,
 				When:  createdAt,
 			},
-			Message:    message,
-			TargetType: typ,
-			Target:     plumbing.NewHash(targetHash),
+			Message:      message,
+			PGPSignature: signature,
+			TargetType:   typ,
+			Target:       plumbing.NewHash(targetHash),
 		}
 
 		tags = append(tags, tag)

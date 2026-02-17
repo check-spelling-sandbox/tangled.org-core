@@ -323,7 +323,7 @@ func (s *TagSuite) TestTags_VerifyAnnotatedTagFields() {
 	assert.Equal(s.T(), "Tagger One", v1Tag.Tagger.Name, "tagger name should match")
 	assert.Equal(s.T(), "tagger1@example.com", v1Tag.Tagger.Email, "tagger email should match")
 
-	assert.Equal(s.T(), "Release version 1.0.0\n\nThis is the first stable release.",
+	assert.Equal(s.T(), "Release version 1.0.0\n\nThis is the first stable release.\n",
 		v1Tag.Message, "tag message should match")
 
 	assert.Equal(s.T(), plumbing.TagObject, v1Tag.TargetType,
