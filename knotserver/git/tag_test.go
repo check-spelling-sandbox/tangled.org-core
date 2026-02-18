@@ -353,6 +353,27 @@ func (s *TagSuite) TestTags_ZeroLimitAndOffset() {
 	assert.Len(s.T(), tags, 5, "zero limit should return all tags")
 }
 
+func (s *TagSuite) TestTags_OrderedNewestFirst() {
+	s.setupRepoWithTags()
+
+	tags, err := s.repo.Tags(nil)
+	require.NoError(s.T(), err)
+	require.Len(s.T(), tags, 5)
+
+	// v3.0.0 has the latest tagger date (baseTime+3h), should be first
+	assert.Equal(s.T(), "v3.0.0", tags[0].Name, "newest tag should be first")
+}
+
+func (s *TagSuite) TestTags_LatestWithLimit1() {
+	s.setupRepoWithTags()
+
+	tags, err := s.repo.Tags(&TagsOptions{Limit: 1})
+	require.NoError(s.T(), err)
+	require.Len(s.T(), tags, 1)
+
+	assert.Equal(s.T(), "v3.0.0", tags[0].Name, "limit=1 should return the newest tag")
+}
+
 func (s *TagSuite) TestTags_Pattern() {
 	s.setupRepoWithTags()
 

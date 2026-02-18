@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"tangled.org/core/api/tangled"
 	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/models"
 	"tangled.org/core/appview/pages"
+	"tangled.org/core/appview/reporesolver"
 	xrpcclient "tangled.org/core/appview/xrpcclient"
 	"tangled.org/core/orm"
 	"tangled.org/core/types"
@@ -101,7 +103,31 @@ func (rp *Repo) Tag(w http.ResponseWriter, r *http.Request) {
 
 	xrpcBytes, err := tangled.RepoTag(r.Context(), xrpcc, repo, tag)
 	if xrpcerr := xrpcclient.HandleXrpcErr(err); xrpcerr != nil {
-		l.Error("failed to call XRPC repo.tags", "err", xrpcerr)
+		// if we don't match an existing tag, and the tag we're trying
+		// to match is "latest", resolve to the most recent tag
+		if tag == "latest" {
+			tagsBytes, err := tangled.RepoTags(r.Context(), xrpcc, "", 1, repo)
+			if xrpcerr := xrpcclient.HandleXrpcErr(err); xrpcerr != nil {
+				l.Error("failed to call XRPC repo.tags for latest", "err", xrpcerr)
+				rp.pages.Error503(w)
+				return
+			}
+			var tagsResult types.RepoTagsResponse
+			if err := json.Unmarshal(tagsBytes, &tagsResult); err != nil {
+				l.Error("failed to decode XRPC response", "err", err)
+				rp.pages.Error503(w)
+				return
+			}
+			if len(tagsResult.Tags) == 0 {
+				rp.pages.Error503(w)
+				return
+			}
+			latestTag := tagsResult.Tags[0].Name
+			ownerSlashRepo := reporesolver.GetBaseRepoPath(r, f)
+			http.Redirect(w, r, fmt.Sprintf("/%s/tags/%s", ownerSlashRepo, url.PathEscape(latestTag)), http.StatusTemporaryRedirect)
+			return
+		}
+		l.Error("failed to call XRPC repo.tag", "err", xrpcerr)
 		rp.pages.Error503(w)
 		return
 	}
