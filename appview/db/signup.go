@@ -5,7 +5,7 @@ import (
 )
 
 func AddInflightSignup(e Execer, signup models.InflightSignup) error {
-	query := `insert into signups_inflight (email, invite_code) values (?, ?)`
+	query := `insert or replace into signups_inflight (email, invite_code) values (?, ?)`
 	_, err := e.Exec(query, signup.Email, signup.InviteCode)
 	return err
 }
