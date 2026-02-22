@@ -1779,7 +1779,7 @@ network, you need to setup one of following:
   to your account. You can add and verify emails on the
   settings page.
 - Or, the committer email should be set to your account's
-  DID: `git config user.email "did:plc:foobar". You can find
+  DID: `git config user.email "did:plc:foobar"`. You can find
   your account's DID on the settings page
 
 ## Commit is not marked as verified
