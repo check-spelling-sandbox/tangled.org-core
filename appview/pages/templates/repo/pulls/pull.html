@@ -315,14 +315,14 @@
       </a>
     </span>
     <div class="flex gap-2 items-center">
-      {{ if ne $root.ActiveRound $round }}
+      {{ if or $root.IsInterdiff (ne $root.ActiveRound $round) }}
       <a class="btn-flat flex items-center gap-2 no-underline hover:no-underline text-sm"
         href="/{{ $root.RepoInfo.FullName }}/pulls/{{ $root.Pull.PullId }}/round/{{ $round }}?{{ safeUrl $root.DiffOpts.Encode }}#round-#{{ $round }}">
         {{ i "diff" "w-4 h-4" }}
         diff
       </a>
       {{ end }}
-      {{ if ne $idx 0 }}
+      {{ if and (ne $idx 0) (or (not $root.IsInterdiff) (ne $root.ActiveRound $round)) }}
         <a class="btn-flat flex items-center gap-2 no-underline hover:no-underline text-sm"
            href="/{{ $root.RepoInfo.FullName }}/pulls/{{ $root.Pull.PullId }}/round/{{ $round }}/interdiff?{{ safeUrl $root.DiffOpts.Encode }}">
           {{ i "chevrons-left-right-ellipsis" "w-4 h-4 rotate-90" }}
