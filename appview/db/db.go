@@ -601,6 +601,13 @@ func Make(ctx context.Context, dbPath string) (*DB, error) {
 			name text unique
 		);
 
+		create table if not exists punchcard_preferences (
+			id integer primary key autoincrement,
+			user_did text not null unique,
+			hide_mine integer default 0,
+			hide_others integer default 0
+		);
+
 		-- indexes for better performance
 		create index if not exists idx_notifications_recipient_created on notifications(recipient_did, created desc);
 		create index if not exists idx_notifications_recipient_read on notifications(recipient_did, read);

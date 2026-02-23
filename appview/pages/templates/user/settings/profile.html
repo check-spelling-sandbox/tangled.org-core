@@ -59,4 +59,27 @@
       </div>
     </div>
   </div>
+  <div class="flex flex-col rounded border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 w-full">
+    <div class="flex items-center justify-between p-4">
+      <div class="hover:no-underline flex flex-col gap-1 min-w-0 max-w-[80%]">
+        <div class="flex flex-wrap text-sm items-center gap-1 text-gray-500 dark:text-gray-400">
+          <span>Punchcard settings</span>
+        </div>
+        <form hx-post="/profile/punchcard" class="col-span-1 md:col-span-1 md:justify-self-end group flex gap-2 items-stretch">
+            <div>
+              <input type="checkbox" id="hideMine" name="hideMine" value="on" {{ if eq true $.PunchcardPreference.HideMine }}checked{{ end }}>
+              <label for="hideMine" class="my-0 py-0 normal-case font-normal">Hide mine</label>
+            </div>
+            <div>
+              <input type="checkbox" id="hideOthers" name="hideOthers" value="on" {{ if eq true $.PunchcardPreference.HideOthers }}checked{{ end }}>
+              <label for="hideOthers" class="my-0 py-0 normal-case font-normal">Hide others from me</label>
+            </div>
+            <button class="btn flex gap-2 items-center" type="submit">
+              {{ i "check" "size-4" }}
+              {{ i "loader-circle" "w-4 h-4 animate-spin hidden group-[.htmx-request]:inline" }}
+            </button>
+          </form>
+      </div>
+    </div>
+  </div>
 {{ end }}

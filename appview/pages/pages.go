@@ -359,8 +359,9 @@ func (p *Pages) GoodFirstIssues(w io.Writer, params GoodFirstIssuesParams) error
 }
 
 type UserProfileSettingsParams struct {
-	LoggedInUser *oauth.MultiAccountUser
-	Tab          string
+	LoggedInUser        *oauth.MultiAccountUser
+	Tab                 string
+	PunchcardPreference models.PunchcardPreference
 }
 
 func (p *Pages) UserProfileSettings(w io.Writer, params UserProfileSettingsParams) error {
@@ -557,6 +558,7 @@ type ProfileOverviewParams struct {
 	ProfileTimeline    *models.ProfileTimeline
 	Card               *ProfileCard
 	Active             string
+	ShowPunchcard      bool
 }
 
 func (p *Pages) ProfileOverview(w io.Writer, params ProfileOverviewParams) error {

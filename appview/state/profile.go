@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -164,7 +165,11 @@ func (s *State) profileOverview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	timeline, err := db.MakeProfileTimeline(s.db, profile.UserDid)
+	loggedInUser := s.oauth.GetMultiAccountUser(r)
+
+	showPunchcard := checkIfPunchcardShouldShow(s.db, l, profile.UserDid, loggedInUser.Did())
+
+	timeline, err := db.MakeProfileTimeline(s.db, profile.UserDid, showPunchcard)
 	if err != nil {
 		l.Error("failed to create timeline", "err", err)
 	}
@@ -175,7 +180,37 @@ func (s *State) profileOverview(w http.ResponseWriter, r *http.Request) {
 		Repos:              pinnedRepos,
 		CollaboratingRepos: pinnedCollaboratingRepos,
 		ProfileTimeline:    timeline,
+		ShowPunchcard:      showPunchcard,
 	})
+}
+
+func checkIfPunchcardShouldShow(e db.Execer, l *slog.Logger, targetDid, requesterDid string) bool {
+	targetPunchcardPreferences, err := db.GetPunchcardPreference(e, targetDid)
+	if err != nil {
+		l.Error("failed to get target users punchcard preferences", "err", err)
+		return true
+	}
+
+	requesterPunchcardPreferences, err := db.GetPunchcardPreference(e, requesterDid)
+	if err != nil {
+		l.Error("failed to get requester users punchcard preferences", "err", err)
+		return true
+	}
+
+	showPunchcard := true
+
+	// looking at their own profile
+	if targetDid == requesterDid {
+		if targetPunchcardPreferences.HideMine {
+			return false
+		}
+		return true
+	}
+
+	if targetPunchcardPreferences.HideMine || requesterPunchcardPreferences.HideOthers {
+		showPunchcard = false
+	}
+	return showPunchcard
 }
 
 func (s *State) reposPage(w http.ResponseWriter, r *http.Request) {
@@ -411,7 +446,7 @@ func (s *State) AtomFeedPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *State) getProfileFeed(ctx context.Context, id *identity.Identity) (*feeds.Feed, error) {
-	timeline, err := db.MakeProfileTimeline(s.db, id.DID.String())
+	timeline, err := db.MakeProfileTimeline(s.db, id.DID.String(), false)
 	if err != nil {
 		return nil, err
 	}
@@ -935,4 +970,31 @@ func (s *State) RemoveProfileAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.pages.HxRedirect(w, r.Header.Get("Referer"))
+}
+
+func (s *State) UpdateProfilePunchcardSetting(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("invalid profile update form", err)
+		return
+	}
+	user := s.oauth.GetUser(r)
+
+	hideOthers := false
+	hideMine := false
+
+	if r.Form.Get("hideMine") == "on" {
+		hideMine = true
+	}
+	if r.Form.Get("hideOthers") == "on" {
+		hideOthers = true
+	}
+
+	err = db.UpsertPunchcardPreference(s.db, user.Did, hideMine, hideOthers)
+	if err != nil {
+		log.Println("failed to update punchcard preferences", err)
+		return
+	}
+
+	s.pages.HxRefresh(w)
 }

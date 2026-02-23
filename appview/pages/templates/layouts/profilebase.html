@@ -52,7 +52,9 @@
       <div class="{{ $style }} order-1 order-1">
         <div class="flex flex-col gap-4">
           {{ template "user/fragments/profileCard" .Card }}
-          {{ block "punchcard" .Card.Punchcard }} {{ end }}
+          {{ if .ShowPunchcard }}
+            {{ block "punchcard" .Card.Punchcard }} {{ end }}
+          {{ end }}
         </div>
       </div>
 

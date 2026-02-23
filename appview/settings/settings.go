@@ -70,8 +70,14 @@ func (s *Settings) Router() http.Handler {
 func (s *Settings) profileSettings(w http.ResponseWriter, r *http.Request) {
 	user := s.OAuth.GetMultiAccountUser(r)
 
+	punchcardPreferences, err := db.GetPunchcardPreference(s.Db, user.Did())
+	if err != nil {
+		log.Printf("failed to get users punchcard preferences: %s", err)
+	}
+
 	s.Pages.UserProfileSettings(w, pages.UserProfileSettingsParams{
-		LoggedInUser: user,
+		LoggedInUser:        user,
+		PunchcardPreference: punchcardPreferences,
 	})
 }
 
