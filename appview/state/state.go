@@ -469,6 +469,10 @@ func (s *State) NewRepo(w http.ResponseWriter, r *http.Request) {
 		l = l.With("defaultBranch", defaultBranch)
 
 		description := r.FormValue("description")
+		if len([]rune(description)) > 140 {
+			s.pages.Notice(w, "repo", "Description must be 140 characters or fewer.")
+			return
+		}
 
 		// ACL validation
 		ok, err := s.enforcer.E.Enforce(user.Active.Did, domain, domain, "repo:create")
