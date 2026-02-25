@@ -39,6 +39,9 @@ func (s *State) Login(w http.ResponseWriter, r *http.Request) {
 		returnURL := r.FormValue("return_url")
 		addAccount := r.FormValue("add_account") == "true"
 
+		// remove spaces around the handle, handles can't have spaces around them
+		handle = strings.TrimSpace(handle)
+
 		// when users copy their handle from bsky.app, it tends to have these characters around it:
 		//
 		// @nelind.dk:
@@ -68,7 +71,11 @@ func (s *State) Login(w http.ResponseWriter, r *http.Request) {
 		redirectURL, err := s.oauth.ClientApp.StartAuthFlow(r.Context(), handle)
 		if err != nil {
 			l.Error("failed to start auth", "err", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			s.pages.Notice(
+				w,
+				"login-msg",
+				fmt.Sprintf("Failed to start auth flow: %v", err),
+			)
 			return
 		}
 
