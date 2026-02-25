@@ -23,7 +23,7 @@
 
 
 {{ define "content" }}
-  <div class="flex flex-col gap-24 md:gap-40 my-24 md:my-32">
+  <div class="flex flex-col gap-20 md:gap-40 my-20 md:my-32">
     {{ template "timeline/fragments/hero" . }}
     {{ template "timeline/fragments/preview" . }}
     {{ template "features1" . }}
@@ -81,7 +81,7 @@
   {{ $labelStyle := "normal-case cursor-pointer w-auto md:w-full p-4 md:px-6 rounded bg-white dark:bg-gray-800 font-medium text-base md:text-lg opacity-50 border border-gray-200 dark:border-gray-700 relative overflow-hidden" }}
   {{ $spanStyle := "z-10 items-center justify-between gap-2 w-full" }}
   {{ $connectorStyle := "w-0.5 h-6 bg-gray-300 dark:bg-gray-600 opacity-0 mx-auto" }}
-  {{ $contentStyle := "hidden bg-white dark:bg-gray-800 rounded shadow-sm p-6 border border-gray-200 dark:border-gray-700 grid-cols-1 md:grid-cols-2" }}
+  {{ $contentStyle := "hidden bg-white dark:bg-gray-800 rounded shadow-sm p-6 md:p-8 border border-gray-200 dark:border-gray-700 grid-cols-1 animate-fadein" }}
   {{ $progressOverlayStyle := "absolute inset-0 bg-gray-600/10 dark:bg-gray-100/10 w-0 transition-none" }}
 
   <style>
@@ -138,184 +138,97 @@
     <div class="{{ $connectorStyle }} peer-checked/knots:opacity-100"></div>
     <div class="{{ $connectorStyle }} peer-checked/spindles:opacity-100"></div>
 
-    {{ $titleStyle := "text-xl md:text-2xl font-bold my-2 text-gray-900 dark:text-gray-100" }}
-    {{ $textContentStyle := "pb-6 md:p-6 md:pr-12 md:text-lg" }}
-    {{ $imgContentStyle := "w-full p-6 min-h-96 min-h-[400px] md:min-h-[500px] rounded overflow-hidden place-content-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700" }}
+    {{ $titleStyle := "text-2xl md:text-6xl my-2 md:mb-4 text-black dark:text-white font-medium" }}
+    {{ $textContentStyle := "pb-6 md:text-xl" }}
+    {{ $imgContentStyle := "w-full min-h-96 min-h-[400px] md:min-h-[500px] rounded overflow-hidden place-content-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700" }}
+    {{ $linkDesktopStyle := "hover:no-underline items-center gap-2 p-3 text-base btn" }}
 
-    <div class="col-span-3 {{ $contentStyle }} peer-checked/prs:grid ">
-      <div class="{{ $textContentStyle }} flex flex-col gap-4 md:gap-8 place-self-center">
-        <section>
-          <h1 class="{{ $titleStyle }}">Stacked PRs</h1>
-          <p>
+    <div class="col-span-3 {{ $contentStyle }} peer-checked/prs:grid relative">
+      <div class="{{ $textContentStyle }} flex gap-4 md:gap-8">
+        <section class="space-y-4">
+          <h1 class="{{ $titleStyle }}">Pull requests, reimagined</h1>
+          <p class="text-gray-600 dark:text-gray-400">
           Break down large features into small, reviewable chunks. Stack pull
           requests on top of each other and ship faster with better code
-          reviews. Tangled natively supports stacking using Jujutsu <a
-            href="https://docs.jj-vcs.dev/latest/glossary/#change-id"
-            class="underline">Change-Ids</a>. 
+          reviews. Tangled natively supports stacking using Jujutsu.
           </p>
+          <a href="https://blog.tangled.org/stacking" class="hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-black dark:text-white font-medium">
+            Learn more
+            {{ i "arrow-right" "size-4" }}
+          </a>
         </section>
-        <section>
-          <h1 class="{{ $titleStyle }}">Round-based review</h1>
-          <p>
-          Pull-requests in Tangled are round-based, which means, each
-          submission is "immutable". To update a PR, the author must start a
-          second revision or "round". As a reviewer, you never have to worry
-          about a PR changing <em>during</em> a review!
-          </p>
-        </section>
-      </div>
-      <div class="{{ $imgContentStyle }} pl-24 md:pl-40">
-        <div class="flex flex-col" style="transform: perspective(1000px) rotateX(15deg)">
-          {{ $mockPRs := list
-            (dict "Id" 941 "Title" "spindle/nixery: update setup command docs" "State" "open" )
-            (dict "Id" 940 "Title" "appview/pulls: fix search not updating count of pull requests" "State" "open" )
-            (dict "Id" 939 "Title" "appview/pages: improved seo tags for home, repo and profile" "State" "open" )
-            (dict "Id" 938 "Title" "appview/state: update robots.txt" "State" "merged" )
-            (dict "Id" 937 "Title" "appview/profile: show dummy profile when no tangled profile" "State" "merged" )
-            (dict "Id" 936 "Title" "appview/pipelines: fix incorrect totals" "State" "merged" )
-          }}
-          {{ range $index, $pr := $mockPRs }}
-            {{ $scale := 1.4 }}
-            {{ if gt $index 0 }}
-              {{ $scale = subf64 1.4 (mulf64 (f64 $index) 0.04) }}
-              {{ if lt $scale 1.0 }}{{ $scale = 1.0 }}{{ end }}
-            {{ end }}
-            {{ $zIndex := sub 100 $index }}
-            {{ template "mockPRRow" (dict "PR" $pr "Scale" $scale "ZIndex" $zIndex) }}
-          {{ end }}
+        <div class="w-fit hidden md:flex items-center">
+          <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
+            {{ i "wand-sparkles" "size-16 text-green-500 dark:text-green-500" }}
+          </div>
+          <div class="size-40 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900 z-10">
+            {{ i "git-pull-request" "size-24 text-indigo-500 dark:text-indigo-500 rotate-12" }}
+          </div>
         </div>
       </div>
+      <div class="{{ $imgContentStyle }} min-h-[500px] relative overflow-hidden">
+        <div class="w-full h-full relative overflow-hidden">
+          <img src="https://assets.tangled.network/home-page-prs.png" class="h-full w-[200%] md:w-full object-cover object-left" />
+        </div>
+      </div>
+      <a href="https://blog.tangled.org/stacking" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
+        Learn more
+        {{ i "arrow-right" "size-4" }}
+      </a>
     </div>
 
     <div class="col-span-3 {{ $contentStyle }} peer-checked/knots:grid">
-      <div class="{{ $textContentStyle }} flex flex-col gap-4 md:gap-8 place-self-center">
-        <section>
-          <h1 class="{{ $titleStyle }}">Knots</h1>
-          <p>
-          Host your repositories on your own infrastructure with <a
-            href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="underline">knots</a>.
-          Knots are lightweight git repository hosts that syndicate git
-          operations across the network. You can setup a knot server on a
-          machine as small as a Raspberry Pi!
-          <br>
-          <br>
-          If you want to try Tangled without self-hosting, fear not! All users
-          are added to our hosted knot by default.
+      <div class="{{ $textContentStyle }} flex place-content-between gap-4 md:gap-8">
+        <section class="space-y-4">
+          <h1 class="{{ $titleStyle }}">Run it at home</h1>
+          <p class="text-gray-600 dark:text-gray-400">
+            Host your repositories on your own infrastructure with <a href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="no-underline">knots</a>.
+            Run CI on your own machines with <a href="https://docs.tangled.org/spindles.html#self-hosting-guide" class="no-underline">spindles</a>. 
+            <br>
+            Don't want to self-host? All are welcome on our hosted instances.
           </p>
         </section>
-        <section>
-          <h1 class="{{ $titleStyle }}">Spindles</h1>
-          <p>
-          Host CI runners on your own infrastructure with <a
-            href="https://docs.tangled.org/spindles.html#self-hosting-guide" class="underline">spindles</a>.
-          Spindles are responsible for queuing up CI jobs and syndicating
-          pipeline statuses to the network. Presently, the task of sandboxing
-          workflows and caching dependencies is delegated to Docker.
-          </p>
-        </section>
+        <div class="w-fit hidden md:flex items-center">
+          <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
+            {{ i "workflow" "size-16 text-green-500 dark:text-green-500" }}
+          </div>
+          <div class="size-40 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900 z-10">
+            {{ i "server" "size-24 text-indigo-500 dark:text-indigo-500" }}
+          </div>
+        </div>
       </div>
-      {{ $planetWrapperStyle := "absolute left-1/2 bottom-0 flex items-start justify-center -translate-x-1/2 translate-y-1/2" }}
-      {{ $orbitStyle := "absolute left-1/2 bottom-0 rounded-full border-2 border-gray-200 dark:border-gray-700 -translate-x-1/2 translate-y-1/2 shadow-lg" }}
-      {{ $planetStyle := "-mt-8 size-16 md:-mt-10 md:size-20 rounded-full shadow-sm border flex items-center justify-center" }}
-      <div class="{{ $imgContentStyle }} min-h-[500px] relative">
-        <div class="size-[250px] {{ $orbitStyle }}"></div>
-        <div class="size-[500px] {{ $orbitStyle }}"></div>
-        <div class="size-[750px] {{ $orbitStyle }}"></div>
-
-        <!-- planets on inner orbit  -->
-        <div class="{{ $planetWrapperStyle }} size-[250px] rotate-[12deg]">
-          <div class="{{ $planetStyle }} -rotate-[12deg] bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-500">
-            {{ i "server" "size-8" "text-blue-500" "dark:text-blue-500" }}
-          </div>
-        </div>
-
-        <!-- Planets on middle orbit  -->
-        <div class="{{ $planetWrapperStyle }} size-[500px] -rotate-[32deg]">
-          <div class="{{ $planetStyle }} rotate-[32deg] bg-green-100 dark:bg-green-900 border-green-500 dark:border-green-500">
-            {{ i "hard-drive" "size-8" "text-green-500" "dark:text-green-500" }}
-          </div>
-        </div>
-        <div class="{{ $planetWrapperStyle }} size-[500px] rotate-[24deg]">
-          <div class="{{ $planetStyle }} -rotate-[24deg] bg-amber-100 dark:bg-amber-900 border-amber-500 dark:border-amber-500">
-            {{ i "server" "size-8" "text-amber-500" "dark:text-amber-500" }}
-          </div>
-        </div>
-
-        <!-- Planets on outer orbit -->
-        <div class="{{ $planetWrapperStyle }} size-[750px] -rotate-[40deg]">
-          <div class="{{ $planetStyle }} rotate-[40deg] bg-blue-100 dark:bg-blue-900 border-blue-500 dark:border-blue-500">
-            {{ i "server" "size-8" "text-blue-500" "dark:text-blue-500" }}
-          </div>
-        </div>
-        <div class="{{ $planetWrapperStyle }} size-[750px] rotate-[3deg]">
-          <div class="{{ $planetStyle }} -rotate-[3deg] bg-green-100 dark:bg-green-900 border-green-500 dark:border-green-500">
-            {{ i "router" "size-8" "text-green-500" "dark:text-green-500" }}
-          </div>
-        </div>
-        <div class="{{ $planetWrapperStyle }} size-[750px] rotate-[44deg]">
-          <div class="{{ $planetStyle }} -rotate-[44deg] bg-amber-100 dark:bg-amber-900 border-amber-500 dark:border-amber-500">
-            {{ i "database" "size-8" "text-amber-500" "dark:text-amber-500" }}
-          </div>
+      <div class="{{ $imgContentStyle }} min-h-[500px] relative overflow-hidden">
+        <div class="w-full h-full relative overflow-hidden">
+          <img src="https://assets.tangled.network/home-page-self-host.png" class="h-full w-[200%] md:w-full object-cover object-center" />
         </div>
       </div>
     </div>
 
     <div class="col-span-3 {{ $contentStyle }} peer-checked/spindles:grid">
-      <div class="{{ $textContentStyle }} flex flex-col gap-4 md:gap-8 place-self-center">
-        <section>
+      <div class="{{ $textContentStyle }} flex place-content-between gap-4 md:gap-8">
+        <section class="space-y-4">
           <h1 class="{{ $titleStyle }}">Nix-powered CI</h1>
-          <p>
-          Pick and choose dependencies for your CI pipelines from <a
-            href="https://docs.tangled.org/spindles.html#dependencies"
-            class="underline"><code>nixpkgs</code></a>, one of the biggest
-          package repositories.
-          <br>
-          <br>
-          All dependencies and workflow images are cached using <a
-            href="https://nixery.dev/">nixery</a>. Subsuquent runs of your CI
-          pipeline will load all dependencies almost instantly.
+          <p class="text-gray-600 dark:text-gray-400">
+            Pick and choose dependencies for your CI pipelines from <a
+              href="https://docs.tangled.org/spindles.html#dependencies"
+              class="no-underline"><code>nixpkgs</code></a>, one of the biggest
+            package repositories.
+            <br>
+            Support for Docker and MicroVM based runners coming soon!
           </p>
         </section>
-        <section>
-          <div class="flex items-center gap-2 my-4">
-            <h1 class="{{ $titleStyle }}">Customizable Engines</h1>
-            <span class="text-sm text-blue-500 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 rounded p-1">coming soon</span>
+        <div class="w-fit hidden md:flex items-center">
+          <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
+            {{ i "package" "size-16 text-green-500 dark:text-green-500" }}
           </div>
-          <p>
-          We know nix is not for everybody! Spindles are built to have
-          swappable engines, on our roadmap are Docker and Firecracker based
-          engines.
-          </p>
-        </section>
+          <div class="size-40 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900 z-10">
+            {{ i "snowflake" "size-24 text-indigo-500 dark:text-indigo-500 rotate-12" }}
+          </div>
+        </div>
       </div>
-      <div class="{{ $imgContentStyle }} flex items-end pb-0">
-        <div class="w-full mx-auto border-t border-l border-r border-gray-200 dark:border-gray-700 rounded-t overflow-hidden shadow-lg">
-          <div class="bg-white dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2 justify-between">
-            <span class="font-mono text-gray-600 dark:text-gray-400 text-sm md:text-lg">.tangled/workflows/test.yml</span>
-            <div class="flex items-center gap-2">
-              <div class="size-3 rounded-full bg-red-500"></div>
-              <div class="size-3 rounded-full bg-yellow-500"></div>
-              <div class="size-3 rounded-full bg-green-500"></div>
-            </div>
-          </div>
-          <div class="bg-white dark:bg-gray-800 p-4 overflow-x-auto text-sm md:text-lg">
-            {{ $yamlContent := `when:
-  - event: push
-    branch: main
-
-dependencies:
-  nixpkgs:
-    - go
-    - gcc
-
-environment:
-  CGO_ENABLED: 1
-
-steps:
-  - name: run all tests
-    command: go test -v ./...` }}
-            <div class="whitespace-pre">{{ code $yamlContent ".tangled/workflows/test.yml" | escapeHtml }}</div>
-          </div>
+      <div class="{{ $imgContentStyle }} flex items-end pb-0 overflow-hidden">
+        <div class="w-full h-full relative overflow-hidden">
+          <img src="https://assets.tangled.network/home-page-ci.png" class="h-full w-[200%] md:w-full object-cover object-left md:object-center" />
         </div>
       </div>
     </div>
@@ -365,39 +278,21 @@ steps:
   </script>
 {{ end }}
 
-{{ define "mockPRRow" }}
-  {{ $pr := .PR }}
-  <div class="flex text-sm items-center justify-between w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded p-3 shadow relative" style="transform: scale({{ .Scale }}); transform-origin: top center; z-index: {{ .ZIndex }};">
-    <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
-      <div class="flex-shrink-0">
-        {{ if eq $pr.State "open" }}
-          {{ i "git-pull-request" "size-4 text-green-500" }}
-        {{ else }}
-          {{ i "git-merge" "size-4 text-purple-500" }}
-        {{ end }}
-      </div>
-      <span class="truncate text-sm text-gray-800 dark:text-gray-200">
-        <span class="text-gray-500 dark:text-gray-400">#{{ $pr.Id }}</span>
-        {{ $pr.Title }}
-      </span>
-    </div>
-  </div>
-{{ end }}
-
 {{ define "features2" }}
   {{ $cardStyle := "bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700" }}
   {{ $cardInnerStyle := "flex flex-row items-center gap-4 md:gap-6 p-4 md:p-6 md:pt-8 relative" }}
   {{ $contentStyle := "flex-1 flex flex-col" }}
   {{ $titleStyle := "text-xl md:text-2xl font-bold mb-2 md:mb-3 text-gray-900 dark:text-gray-100" }}
-  {{ $descriptionStyle := "text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed mb-3 md:mb-0" }}
-  {{ $linkMobileStyle := "hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium" }}
+  {{ $descriptionStyle := "text-gray-600 dark:text-gray-300 text-sm md:text-base leading-relaxed mb-5 md:mb-0" }}
+  {{ $linkMobileStyle := "hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-black dark:text-white font-medium" }}
   {{ $iconContainerStyle := "relative shrink-0 w-24 h-24 md:w-48 md:h-48" }}
-  {{ $iconCircleStyle := "w-full h-full rounded-full flex items-center justify-center" }}
+  {{ $iconCircleStyle := "rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700" }}
   {{ $linkDesktopStyle := "hover:no-underline hidden md:inline-flex absolute -bottom-10 -right-14 items-center gap-2 p-3 text-base btn" }}
 
   <div class="w-full flex flex-col gap-6 md:gap-40 max-w-5xl mx-auto px-2">
     <div class="{{ $cardStyle }} md:mr-32">
       <div class="{{ $cardInnerStyle }}">
+        {{ $moreLink := "https://docs.tangled.org/quick-start-guide.html#login-or-sign-up" }}
         <div class="{{ $contentStyle }}">
           <h3 class="{{ $titleStyle }}">Built on AT Protocol</h3>
           <p class="{{ $descriptionStyle }}">
@@ -408,18 +303,20 @@ steps:
             <br>
             Bring an existing AT Protocol account (such as your Bluesky
             account), or signup for one with us.
-            <a class="underline" href="https://docs.tangled.org/quick-start-guide.html#login-or-sign-up">Read the docs to know more.</a>
           </p>
-          <a href="TODO" class="{{ $linkMobileStyle }}">
+          <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
             Learn more
             {{ i "arrow-right" "size-4" }}
           </a>
         </div>
         <div class="{{ $iconContainerStyle }}">
-          <div class="{{ $iconCircleStyle }} bg-blue-100 dark:bg-blue-900/50">
+          <div class="{{ $iconCircleStyle }} w-full h-full bg-blue-100 dark:bg-blue-900/50">
             {{ i "at-sign" "size-12 md:size-24" "text-blue-500 dark:text-blue-500" "rotate-12" }}
           </div>
-          <a href="TODO" class="{{ $linkDesktopStyle }}">
+          <div class="{{ $iconCircleStyle }} absolute -top-2 -left-2 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 -rotate-12">
+            {{ i "globe" "size-4 md:size-8" "text-blue-500 dark:text-blue-500" }}
+          </div>
+          <a href="{{ $moreLink }}" class="{{ $linkDesktopStyle }}">
             Learn more
             {{ i "arrow-right" "size-4" }}
           </a>
@@ -429,6 +326,7 @@ steps:
 
     <div class="{{ $cardStyle }} md:ml-32">
       <div class="{{ $cardInnerStyle }}">
+        {{ $moreLink := "https://tangled.org/core" }}
         <div class="{{ $contentStyle }}">
           <h3 class="{{ $titleStyle }}">Free and Open-source</h3>
           <p class="{{ $descriptionStyle }}">
@@ -439,17 +337,20 @@ steps:
             We welcome contributions however big or small. You can start contributing by picking up a
             <a class="underline" href="https://tangled.org/tangled.org/core/issues">good-first-issue</a>.
           </p>
-          <a href="TODO" class="{{ $linkMobileStyle }}">
-            Learn more
+          <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
+            View source
             {{ i "arrow-right" "size-4" }}
           </a>
         </div>
         <div class="{{ $iconContainerStyle }}">
-          <div class="{{ $iconCircleStyle }} bg-green-100 dark:bg-green-900/50">
+          <div class="{{ $iconCircleStyle }} w-full h-full bg-green-100 dark:bg-green-900/50">
             {{ i "package-open" "size-12 md:size-24" "text-green-500 dark:text-green-500" "-rotate-12" }}
           </div>
-          <a href="TODO" class="{{ $linkDesktopStyle }}">
-            Learn more
+          <div class="absolute -top-2 -left-2 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 rotate-12">
+            {{ i "heart" "size-4 md:size-8" "text-green-500 dark:text-green-500" }}
+          </div>
+          <a href="{{ $moreLink }}" class="{{ $linkDesktopStyle }}">
+            View source
             {{ i "arrow-right" "size-4" }}
           </a>
         </div>
@@ -458,6 +359,7 @@ steps:
 
     <div class="{{ $cardStyle }} md:mr-32">
       <div class="{{ $cardInnerStyle }}">
+        {{ $moreLink := "/timeline" }}
         <div class="{{ $contentStyle }}">
           <h3 class="{{ $titleStyle }}">Social coding is back</h3>
           <p class="{{ $descriptionStyle }}">
@@ -468,17 +370,20 @@ steps:
             friends on Bluesky, you will find them on Tangled with the same
             handle.
           </p>
-          <a href="TODO" class="{{ $linkMobileStyle }}">
-            Learn more
+          <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
+            Explore timeline
             {{ i "arrow-right" "size-4" }}
           </a>
         </div>
         <div class="{{ $iconContainerStyle }}">
-          <div class="{{ $iconCircleStyle }} bg-amber-100 dark:bg-amber-900/50">
+          <div class="{{ $iconCircleStyle }} w-full h-full bg-amber-100 dark:bg-amber-900/50">
             {{ i "message-circle-heart" "size-12 md:size-24" "text-amber-500 dark:text-amber-500" "rotate-12" }}
           </div>
-          <a href="TODO" class="{{ $linkDesktopStyle }}">
-            Learn more
+          <div class="absolute -top-2 -left-2 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 -rotate-12">
+            {{ i "users" "size-4 md:size-8" "text-amber-500 dark:text-amber-500" }}
+          </div>
+          <a href="{{ $moreLink }}" class="{{ $linkDesktopStyle }}">
+            Explore timeline
             {{ i "arrow-right" "size-4" }}
           </a>
         </div>
@@ -581,7 +486,7 @@ steps:
           <span>{{ .RepostCount }}</span>
         </div>
         <div class="flex items-center gap-1">
-          {{ i "reply" "size-4 -scale-x-1" }}
+          {{ i "message-square" "size-4 -scale-x-1" }}
           <span>{{ add64 .ReplyCount .QuoteCount }}</span>
         </div>
       </div>
@@ -600,11 +505,11 @@ steps:
       <br>
       <a href="https://docs.tangled.org/quick-start-guide.html#login-or-sign-up">Read more on the docs.</a>
     </p>
-    <form class="flex gap-2 items-stretch w-full md:max-w-md mx-auto p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded shadow-sm">
+    <form class="flex gap-2 items-stretch w-full md:max-w-md mx-auto p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded shadow-sm" method="get" action="/signup">
       <input
         type="email"
         id="email"
-        name="email"
+        name="id"
         tabindex="4"
         required
         placeholder="Enter your email"

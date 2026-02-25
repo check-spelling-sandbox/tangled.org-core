@@ -1,6 +1,6 @@
 {{ define "timeline/fragments/preview" }}
   <div class="flex flex-col gap-4 overflow-hidden">
-    <div class="relative h-80 w-full">
+    <div class="relative h-96 w-full">
       <!-- left fade overlay (fixed on left edge) -->
       <div class="absolute left-0 top-0 h-full w-16 pointer-events-none z-10 bg-gradient-to-r from-white to-transparent dark:from-gray-900"></div>
 
@@ -78,22 +78,27 @@
   {{ $repo := $event.Repo }}
   {{ $source := $event.Source }}
   {{ $userHandle := resolve $repo.Did }}
-    <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
-      {{ template "user/fragments/picHandleLink" $repo.Did }}
-      {{ with $source }}
-        {{ $sourceDid := resolve .Did }}
-        forked
-        <a href="/{{ $sourceDid }}/{{ .Name }}"class="no-underline hover:underline">
-            {{ $sourceDid }}/{{ .Name }}
-        </a>
-        to
-        <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">{{ $repo.Name }}</a>
-      {{ else }}
-        created
-        <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">
-          {{ $repo.Name }}
-        </a>
-      {{ end }}
+    <div class="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-stretch divide-x divide-gray-200 dark:divide-gray-700 text-sm">
+      <div class="p-4 bg-gray-100 dark:bg-gray-900/50 h-full">
+        {{ i "folder-plus" "size-4" }}
+      </div>
+      <div class="px-4 flex items-center gap-2">
+        {{ template "user/fragments/picHandleLink" $repo.Did }}
+        {{ with $source }}
+          {{ $sourceDid := resolve .Did }}
+          forked
+          <a href="/{{ $sourceDid }}/{{ .Name }}"class="no-underline hover:underline">
+              {{ $sourceDid }}/{{ .Name }}
+          </a>
+          to
+          <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">{{ $repo.Name }}</a>
+        {{ else }}
+          created
+          <a href="/{{ $userHandle }}/{{ $repo.Name }}" class="no-underline hover:underline">
+            {{ $repo.Name }}
+          </a>
+        {{ end }}
+      </div>
     </div>
 {{ end }}
 
@@ -104,13 +109,18 @@
   {{ with $star }}
     {{ $starrerHandle := resolve .Did }}
     {{ $repoOwnerHandle :=  resolve .Repo.Did }}
-    <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
+    <div class="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-stretch divide-x divide-gray-200 dark:divide-gray-700 text-sm">
+      <div class="p-4 bg-gray-100 dark:bg-gray-900/50 h-full">
+        {{ i "star" "size-4" }}
+      </div>
+      <div class="px-4 flex items-center gap-2">
         {{ template "user/fragments/picHandleLink" $starrerHandle }}
         starred
         {{ template "user/fragments/pic" (list $repoOwnerHandle "size-6") }}
         <a href="/{{ $repoOwnerHandle }}/{{ .Repo.Name }}" class="no-underline hover:underline">
           {{ $repoOwnerHandle | truncateAt30 }}/{{ .Repo.Name }}
         </a>
+      </div>
     </div>
   {{ end }}
 {{ end }}
@@ -125,9 +135,14 @@
 
   {{ $userHandle :=  resolve $follow.UserDid }}
   {{ $subjectHandle :=  resolve $follow.SubjectDid }}
-  <div class="px-6 py-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-center gap-2 text-sm">
+  <div class="bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 flex w-max items-stretch divide-x divide-gray-200 dark:divide-gray-700 text-sm">
+    <div class="p-4 bg-gray-100 dark:bg-gray-900/50 h-full">
+      {{ i "user-plus" "size-4" }}
+    </div>
+    <div class="px-4 flex items-center gap-2">
       {{ template "user/fragments/picHandleLink" $userHandle }}
       followed
       {{ template "user/fragments/picHandleLink" $subjectHandle }}
+    </div>
   </div>
 {{ end }}
