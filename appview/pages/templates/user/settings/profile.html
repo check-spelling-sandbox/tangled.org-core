@@ -4,82 +4,55 @@
   <div class="p-6">
     <p class="text-xl font-bold dark:text-white">Settings</p>
   </div>
-  <div class="bg-white dark:bg-gray-800 p-6 rounded relative w-full mx-auto drop-shadow-sm dark:text-white">
-    <section class="w-full grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div class="col-span-1">
-        {{ template "user/settings/fragments/sidebar" . }}
-      </div>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded w-full mx-auto drop-shadow-sm dark:text-white">
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {{ template "user/settings/fragments/sidebar" . }}
       <div class="col-span-1 md:col-span-3 flex flex-col gap-6">
-        {{ template "profileInfo" . }}
+        {{ template "profile" . }}
+        {{ template "punchcard" . }}
       </div>
     </section>
   </div>
 {{ end }}
 
-{{ define "profileInfo" }}
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-    <div class="col-span-1 md:col-span-2">
-      <h2 class="text-sm pb-2 uppercase font-bold">Profile</h2>
-      <p class="text-gray-500 dark:text-gray-400">
-        Your account information from your AT Protocol identity.
-      </p>
-    </div>
-    <div class="col-span-1 md:col-span-1 md:justify-self-end">
-    </div>
-  </div>
-  <div class="flex flex-col rounded border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 w-full">
-    <div class="flex items-center justify-between p-4">
-      <div class="hover:no-underline flex flex-col gap-1 min-w-0 max-w-[80%]">
-        <div class="flex flex-wrap text-sm items-center gap-1 text-gray-500 dark:text-gray-400">
-          <span>Handle</span>
-        </div>
-        <span class="font-bold">
-          {{ resolve .LoggedInUser.Did }}
-        </span>
+{{ define "profile" }}
+  <div>
+    <h2 class="text-sm uppercase font-bold">Profile</h2>
+    <p class="text-gray-500 dark:text-gray-400 pb-2">
+      Your account information from your AT Protocol identity.
+    </p>
+    <div class="flex flex-col rounded border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+      <div class="flex flex-col gap-1 p-4">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Handle</span>
+        <span class="font-bold">{{ resolve .LoggedInUser.Did }}</span>
       </div>
-    </div>
-    <div class="flex items-center justify-between p-4">
-      <div class="hover:no-underline flex flex-col gap-1 min-w-0 max-w-[80%]">
-        <div class="flex flex-wrap text-sm items-center gap-1 text-gray-500 dark:text-gray-400">
-          <span>Decentralized Identifier (DID)</span>
-        </div>
-        <span class="font-mono font-bold">
-          {{ .LoggedInUser.Did }}
-        </span>
+      <div class="flex flex-col gap-1 p-4">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Decentralized Identifier (DID)</span>
+        <span class="font-mono font-bold">{{ .LoggedInUser.Did }}</span>
       </div>
-    </div>
-    <div class="flex items-center justify-between p-4">
-      <div class="hover:no-underline flex flex-col gap-1 min-w-0 max-w-[80%]">
-        <div class="flex flex-wrap text-sm items-center gap-1 text-gray-500 dark:text-gray-400">
-          <span>Personal Data Server (PDS)</span>
-        </div>
-        <span class="font-bold">
-          {{ .LoggedInUser.Pds }}
-        </span>
+      <div class="flex flex-col gap-1 p-4">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Personal Data Server (PDS)</span>
+        <span class="font-bold">{{ .LoggedInUser.Pds }}</span>
       </div>
     </div>
   </div>
-  <div class="flex flex-col rounded border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 w-full">
-    <div class="flex items-center justify-between p-4">
-      <div class="hover:no-underline flex flex-col gap-1 min-w-0 max-w-[80%]">
-        <div class="flex flex-wrap text-sm items-center gap-1 text-gray-500 dark:text-gray-400">
-          <span>Punchcard settings</span>
-        </div>
-        <form hx-post="/profile/punchcard" class="col-span-1 md:col-span-1 md:justify-self-end group flex gap-2 items-stretch">
-            <div>
-              <input type="checkbox" id="hideMine" name="hideMine" value="on" {{ if eq true $.PunchcardPreference.HideMine }}checked{{ end }}>
-              <label for="hideMine" class="my-0 py-0 normal-case font-normal">Hide mine</label>
-            </div>
-            <div>
-              <input type="checkbox" id="hideOthers" name="hideOthers" value="on" {{ if eq true $.PunchcardPreference.HideOthers }}checked{{ end }}>
-              <label for="hideOthers" class="my-0 py-0 normal-case font-normal">Hide others from me</label>
-            </div>
-            <button class="btn flex gap-2 items-center" type="submit">
-              {{ i "check" "size-4" }}
-              {{ i "loader-circle" "w-4 h-4 animate-spin hidden group-[.htmx-request]:inline" }}
-            </button>
-          </form>
+{{ end }}
+
+{{ define "punchcard" }}
+  <div>
+    <h2 class="text-sm uppercase font-bold">Punchcard</h2>
+    <p class="text-gray-500 dark:text-gray-400 pb-2 ">
+      Configure punchcard visibility and preferences.
+    </p>
+    <form hx-post="/profile/punchcard" hx-trigger="change" hx-swap="none" class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="hideMine" name="hideMine" value="on" {{ if eq true $.PunchcardPreference.HideMine }}checked{{ end }}>
+        <label for="hideMine" class="my-0 py-0 normal-case font-normal">Hide mine</label>
       </div>
-    </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="hideOthers" name="hideOthers" value="on" {{ if eq true $.PunchcardPreference.HideOthers }}checked{{ end }}>
+        <label for="hideOthers" class="my-0 py-0 normal-case font-normal">Hide others from me</label>
+      </div>
+    </form>
   </div>
 {{ end }}
