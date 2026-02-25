@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -90,16 +89,21 @@ func (s *State) profile(r *http.Request) (*pages.ProfileCard, error) {
 		followStatus = db.GetFollowStatus(s.db, loggedInUser.Active.Did, did)
 	}
 
-	now := time.Now()
-	startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
-	punchcard, err := db.MakePunchcard(
-		s.db,
-		orm.FilterEq("did", did),
-		orm.FilterGte("date", startOfYear.Format(time.DateOnly)),
-		orm.FilterLte("date", now.Format(time.DateOnly)),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get punchcard for %s: %w", did, err)
+	showPunchcard := s.shouldShowPunchcard(did, loggedInUser.Did())
+
+	var punchcard *models.Punchcard
+	if showPunchcard {
+		now := time.Now()
+		startOfYear := time.Date(now.Year(), 1, 1, 0, 0, 0, 0, time.UTC)
+		punchcard, err = db.MakePunchcard(
+			s.db,
+			orm.FilterEq("did", did),
+			orm.FilterGte("date", startOfYear.Format(time.DateOnly)),
+			orm.FilterLte("date", now.Format(time.DateOnly)),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get punchcard for %s: %w", did, err)
+		}
 	}
 
 	return &pages.ProfileCard{
@@ -165,11 +169,7 @@ func (s *State) profileOverview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	loggedInUser := s.oauth.GetMultiAccountUser(r)
-
-	showPunchcard := checkIfPunchcardShouldShow(s.db, l, profile.UserDid, loggedInUser.Did())
-
-	timeline, err := db.MakeProfileTimeline(s.db, profile.UserDid, showPunchcard)
+	timeline, err := db.MakeProfileTimeline(s.db, profile.UserDid)
 	if err != nil {
 		l.Error("failed to create timeline", "err", err)
 	}
@@ -180,18 +180,19 @@ func (s *State) profileOverview(w http.ResponseWriter, r *http.Request) {
 		Repos:              pinnedRepos,
 		CollaboratingRepos: pinnedCollaboratingRepos,
 		ProfileTimeline:    timeline,
-		ShowPunchcard:      showPunchcard,
 	})
 }
 
-func checkIfPunchcardShouldShow(e db.Execer, l *slog.Logger, targetDid, requesterDid string) bool {
-	targetPunchcardPreferences, err := db.GetPunchcardPreference(e, targetDid)
+func (s *State) shouldShowPunchcard(targetDid, requesterDid string) bool {
+	l := s.logger.With("helper", "shouldShowPunchcard")
+
+	targetPunchcardPreferences, err := db.GetPunchcardPreference(s.db, targetDid)
 	if err != nil {
 		l.Error("failed to get target users punchcard preferences", "err", err)
 		return true
 	}
 
-	requesterPunchcardPreferences, err := db.GetPunchcardPreference(e, requesterDid)
+	requesterPunchcardPreferences, err := db.GetPunchcardPreference(s.db, requesterDid)
 	if err != nil {
 		l.Error("failed to get requester users punchcard preferences", "err", err)
 		return true
@@ -446,7 +447,7 @@ func (s *State) AtomFeedPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *State) getProfileFeed(ctx context.Context, id *identity.Identity) (*feeds.Feed, error) {
-	timeline, err := db.MakeProfileTimeline(s.db, id.DID.String(), false)
+	timeline, err := db.MakeProfileTimeline(s.db, id.DID.String())
 	if err != nil {
 		return nil, err
 	}

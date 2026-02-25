@@ -16,7 +16,7 @@ import (
 
 const TimeframeMonths = 7
 
-func MakeProfileTimeline(e Execer, forDid string, includePunchcard bool) (*models.ProfileTimeline, error) {
+func MakeProfileTimeline(e Execer, forDid string) (*models.ProfileTimeline, error) {
 	timeline := models.ProfileTimeline{
 		ByMonth: make([]models.ByMonth, TimeframeMonths),
 	}
@@ -98,29 +98,27 @@ func MakeProfileTimeline(e Execer, forDid string, includePunchcard bool) (*model
 		})
 	}
 
-	if includePunchcard {
-		punchcard, err := MakePunchcard(
-			e,
-			orm.FilterEq("did", forDid),
-			orm.FilterGte("date", time.Now().AddDate(0, -TimeframeMonths, 0)),
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error getting commits by did: %w", err)
+	punchcard, err := MakePunchcard(
+		e,
+		orm.FilterEq("did", forDid),
+		orm.FilterGte("date", time.Now().AddDate(0, -TimeframeMonths, 0)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error getting commits by did: %w", err)
+	}
+	for _, punch := range punchcard.Punches {
+		if punch.Date.After(now) {
+			continue
 		}
-		for _, punch := range punchcard.Punches {
-			if punch.Date.After(now) {
-				continue
-			}
 
-			monthsAgo := monthsBetween(punch.Date, now)
-			if monthsAgo >= TimeframeMonths {
-				// shouldn't happen; but times are weird
-				continue
-			}
-
-			idx := monthsAgo
-			timeline.ByMonth[idx].Commits += punch.Count
+		monthsAgo := monthsBetween(punch.Date, now)
+		if monthsAgo >= TimeframeMonths {
+			// shouldn't happen; but times are weird
+			continue
 		}
+
+		idx := monthsAgo
+		timeline.ByMonth[idx].Commits += punch.Count
 	}
 
 	return &timeline, nil
