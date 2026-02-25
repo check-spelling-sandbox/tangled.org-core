@@ -6,7 +6,9 @@
   </div>
   <div class="bg-white dark:bg-gray-800 p-6 rounded w-full mx-auto drop-shadow-sm dark:text-white">
     <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {{ template "user/settings/fragments/sidebar" . }}
+      <div class="col-span-1">
+        {{ template "user/settings/fragments/sidebar" . }}
+      </div>
       <div class="col-span-1 md:col-span-3 flex flex-col gap-6">
         {{ template "profile" . }}
         {{ template "punchcard" . }}
