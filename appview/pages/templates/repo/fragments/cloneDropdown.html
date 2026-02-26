@@ -15,66 +15,73 @@
     popover
     id="clone-dropdown"
     class="
-      bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
-      dark:text-white backdrop:bg-gray-400/50 dark:backdrop:bg-gray-800/50 
-      w-96 p-4 rounded drop-shadow overflow-visible">
-    <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-5">Clone this repository</h3>
+      bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+      dark:text-white backdrop:bg-gray-400/50 dark:backdrop:bg-gray-800/50
+      w-96 md:w-[440px] p-4 rounded drop-shadow overflow-visible">
 
-    <!-- HTTPS Clone -->
-    <div class="mb-3">
-      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">HTTPS</label>
-      <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded">
-        <code
-          class="flex-1 px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-l select-all cursor-pointer whitespace-nowrap overflow-x-auto"
-          onclick="window.getSelection().selectAllChildren(this)"
-          data-url="https://tangled.org/{{ resolve .RepoInfo.OwnerDid }}/{{ .RepoInfo.Name }}"
-          >https://tangled.org/{{ resolve .RepoInfo.OwnerDid }}/{{ .RepoInfo.Name }}</code>
-        <button
-          onclick="copyToClipboard(this, this.previousElementSibling.getAttribute('data-url'))"
-          class="px-3 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-l border-gray-300 dark:border-gray-600"
-          title="Copy to clipboard"
-          >
-          {{ i "copy" "w-4 h-4" }}
-        </button>
-      </div>
+    <input
+      type="checkbox"
+      id="permalink-toggle"
+      class="peer hidden m-0">
+
+    <div class="flex items-center justify-between">
+      <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Clone this repository</h3>
+      <label for="permalink-toggle" class="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300 cursor-pointer normal-case font-normal">
+        {{ i "square-check-big" "checkbox-checked size-4" }}
+        {{ i "square" "checkbox-unchecked size-4" }}
+        <span>Use permalink</span>
+      </label>
     </div>
 
-    <!-- SSH Clone -->
-    <div class="mb-3">
-      {{ $repoOwnerHandle := resolve .RepoInfo.OwnerDid }}
-      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SSH</label>
-      <div class="flex items-center border border-gray-300 dark:border-gray-600 rounded">
-        <code
-          class="flex-1 px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-l select-all cursor-pointer whitespace-nowrap overflow-x-auto"
-          onclick="window.getSelection().selectAllChildren(this)"
-          data-url="git@{{ $knot | stripPort }}:{{ $repoOwnerHandle }}/{{ .RepoInfo.Name }}"
-          >git@{{ $knot | stripPort }}:{{ $repoOwnerHandle }}/{{ .RepoInfo.Name }}</code>
-        <button
-          onclick="copyToClipboard(this, this.previousElementSibling.getAttribute('data-url'))"
-          class="px-3 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-l border-gray-300 dark:border-gray-600"
-          title="Copy to clipboard"
-          >
-          {{ i "copy" "w-4 h-4" }}
-        </button>
-      </div>
-    </div>
+    {{ $repoOwnerHandle := resolve .RepoInfo.OwnerDid }}
 
-    <!-- Note for self-hosted -->
-    <p class="text-xs text-gray-500 dark:text-gray-400">
-    For self-hosted knots, clone URLs may differ based on your setup.
+    {{ template "cloneUrlItem" (
+        dict
+          "Label" "HTTPS"
+          "HandleUrl" (printf "https://tangled.org/%s/%s" $repoOwnerHandle .RepoInfo.Name)
+          "PermaUrl" (printf "https://tangled.org/%s/%s" .RepoInfo.OwnerDid .RepoInfo.Name)
+          ) }}
+
+    {{ template "cloneUrlItem" (
+      dict
+        "Label" "SSH"
+        "HandleUrl" (printf "git@%s:%s/%s" (stripPort $knot) $repoOwnerHandle .RepoInfo.Name)
+        "PermaUrl" (printf "git@%s:%s/%s" (stripPort $knot) .RepoInfo.OwnerDid .RepoInfo.Name)
+        ) }}
+
+    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      For self-hosted knots, clone URLs may differ based on your setup.
     </p>
 
-    <!-- Download Archive -->
-    <div class="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
-      <a
-        href="/{{ .RepoInfo.FullName }}/archive/{{ .Ref | urlquery }}"
-        class="flex items-center gap-2 px-3 py-2 text-sm"
-        >
-        {{ i "download" "w-4 h-4" }}
-        Download tar.gz
-      </a>
-    </div>
+    <a
+      href="/{{ .RepoInfo.FullName }}/archive/{{ .Ref | urlquery }}"
+      class="flex items-center btn-create w-full mt-4 gap-2 text-sm hover:no-underline hover:text-gray-100"
+      >
+      {{ i "download" "w-4 h-4" }}
+      Download tar.gz
+    </a>
   </div>
+
+  <style>
+    .clone-url-did {
+      display: none;
+    }
+    .checkbox-checked {
+      display: none;
+    }
+    #permalink-toggle:checked ~ * .clone-url-handle {
+      display: none;
+    }
+    #permalink-toggle:checked ~ * .clone-url-did {
+      display: block;
+    }
+    #permalink-toggle:checked ~ * .checkbox-checked {
+      display: block;
+    }
+    #permalink-toggle:checked ~ * .checkbox-unchecked {
+      display: none;
+    }
+  </style>
 
   <script>
     function copyToClipboard(button, text) {
@@ -88,3 +95,27 @@
     }
   </script>
 {{ end }}
+
+{{ define "cloneUrlItem" }}
+  <div class="mt-4">
+    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 normal-case">{{ .Label }}</label>
+    <div class="flex items-stretch border border-gray-300 dark:border-gray-600 divide-x divide-gray-300 dark:divide-gray-600 rounded">
+      <span
+        class="clone-url-handle flex-1 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 select-all cursor-pointer whitespace-nowrap overflow-x-auto font-mono bg-gray-200 dark:bg-gray-700"
+        onclick="window.getSelection().selectAllChildren(this)"
+        >{{ .HandleUrl }}</span>
+      <span
+        class="clone-url-did flex-1 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 select-all cursor-pointer whitespace-nowrap overflow-x-auto font-mono bg-gray-200 dark:bg-gray-700"
+        onclick="window.getSelection().selectAllChildren(this)"
+        >{{ .PermaUrl }}</span>
+      <button
+        onclick="copyToClipboard(this, Array.from(this.parentElement.querySelectorAll('span')).find(s => getComputedStyle(s).display !== 'none').textContent)"
+        class="px-3 py-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        title="Copy to clipboard"
+        >
+        {{ i "copy" "w-4 h-4" }}
+      </button>
+    </div>
+  </div>
+{{ end }}
+
