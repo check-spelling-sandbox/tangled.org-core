@@ -81,7 +81,7 @@
   {{ $labelStyle := "normal-case cursor-pointer w-auto md:w-full p-4 md:px-6 rounded bg-white dark:bg-gray-800 font-medium text-base md:text-lg opacity-50 border border-gray-200 dark:border-gray-700 relative overflow-hidden" }}
   {{ $spanStyle := "z-10 items-center justify-between gap-2 w-full" }}
   {{ $connectorStyle := "w-0.5 h-6 bg-gray-300 dark:bg-gray-600 opacity-0 mx-auto" }}
-  {{ $contentStyle := "hidden bg-white dark:bg-gray-800 rounded shadow-sm p-6 md:p-8 border border-gray-200 dark:border-gray-700 grid-cols-1 animate-fadein" }}
+  {{ $contentStyle := "hidden bg-white dark:bg-gray-800 rounded shadow-sm border border-gray-200 dark:border-gray-700 grid-cols-1 animate-fadein" }}
   {{ $progressOverlayStyle := "absolute inset-0 bg-gray-600/10 dark:bg-gray-100/10 w-0 transition-none" }}
 
   <style>
@@ -139,8 +139,8 @@
     <div class="{{ $connectorStyle }} peer-checked/spindles:opacity-100"></div>
 
     {{ $titleStyle := "text-2xl md:text-6xl my-2 md:mb-4 text-black dark:text-white font-medium" }}
-    {{ $textContentStyle := "pb-6 md:text-xl" }}
-    {{ $imgContentStyle := "w-full min-h-96 min-h-[400px] md:min-h-[500px] rounded overflow-hidden place-content-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-700" }}
+    {{ $textContentStyle := "p-4 md:p-6 md:text-xl" }}
+    {{ $imgContentStyle := "w-full overflow-hidden place-content-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 border-t border-gray-200 dark:border-gray-700" }}
     {{ $linkDesktopStyle := "hover:no-underline items-center gap-2 p-3 text-base btn" }}
 
     <div class="col-span-3 {{ $contentStyle }} peer-checked/prs:grid relative">
@@ -158,17 +158,17 @@
           </a>
         </section>
         <div class="w-fit hidden md:flex items-center">
-          <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
-            {{ i "wand-sparkles" "size-16 text-green-500 dark:text-green-500" }}
+          <div class="size-32 rounded-full flex items-center justify-center bg-yellow-100 dark:bg-yellow-900 -mr-4" >
+            {{ i "wand-sparkles" "size-16 text-yellow-500 dark:text-yellow-500" }}
           </div>
-          <div class="size-40 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900 z-10">
-            {{ i "git-pull-request" "size-24 text-indigo-500 dark:text-indigo-500 rotate-12" }}
+          <div class="size-40 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 z-10">
+            {{ i "git-pull-request-arrow" "size-24 text-green-500 dark:text-green-500 rotate-12" }}
           </div>
         </div>
       </div>
-      <div class="{{ $imgContentStyle }} min-h-[500px] relative overflow-hidden">
-        <div class="w-full h-full relative overflow-hidden">
-          <img src="https://assets.tangled.network/home-page-prs.png" class="h-full w-[200%] md:w-full object-cover object-left" />
+      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center">
+        <div class="w-full md:w-full flex justify-center">
+          <img src="https://assets.tangled.network/home-page-prs.svg" class="w-[120%] md:w-full" />
         </div>
       </div>
       <a href="https://blog.tangled.org/stacking" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
@@ -177,34 +177,42 @@
       </a>
     </div>
 
-    <div class="col-span-3 {{ $contentStyle }} peer-checked/knots:grid">
+    <div class="col-span-3 {{ $contentStyle }} peer-checked/knots:grid relative">
       <div class="{{ $textContentStyle }} flex place-content-between gap-4 md:gap-8">
         <section class="space-y-4">
           <h1 class="{{ $titleStyle }}">Run it at home</h1>
           <p class="text-gray-600 dark:text-gray-400">
             Host your repositories on your own infrastructure with <a href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="no-underline">knots</a>.
-            Run CI on your own machines with <a href="https://docs.tangled.org/spindles.html#self-hosting-guide" class="no-underline">spindles</a>. 
+            Run CI on your own machines with <a href="https://docs.tangled.org/spindles.html#self-hosting-guide" class="no-underline">spindles</a>.
             <br>
             Don't want to self-host? All are welcome on our hosted instances.
           </p>
+          <a href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-black dark:text-white font-medium">
+            Learn more
+            {{ i "arrow-right" "size-4" }}
+          </a>
         </section>
         <div class="w-fit hidden md:flex items-center">
-          <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
-            {{ i "workflow" "size-16 text-green-500 dark:text-green-500" }}
+          <div class="size-32 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900 -mr-4" >
+            {{ i "workflow" "size-16 text-blue-500 dark:text-blue-500" }}
           </div>
-          <div class="size-40 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-900 z-10">
-            {{ i "server" "size-24 text-indigo-500 dark:text-indigo-500" }}
+          <div class="size-40 rounded-full flex items-center justify-center bg-yellow-100 dark:bg-yellow-900 z-10">
+            {{ i "server" "size-24 text-yellow-500 dark:text-yellow-500" }}
           </div>
         </div>
       </div>
-      <div class="{{ $imgContentStyle }} min-h-[500px] relative overflow-hidden">
-        <div class="w-full h-full relative overflow-hidden">
-          <img src="https://assets.tangled.network/home-page-self-host.png" class="h-full w-[200%] md:w-full object-cover object-center" />
+      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center">
+        <div class="w-full md:w-full flex justify-center">
+          <img src="https://assets.tangled.network/home-page-self-host.svg" class="w-[120%] md:w-full" />
         </div>
       </div>
+      <a href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
+        Learn more
+        {{ i "arrow-right" "size-4" }}
+      </a>
     </div>
 
-    <div class="col-span-3 {{ $contentStyle }} peer-checked/spindles:grid">
+    <div class="col-span-3 {{ $contentStyle }} peer-checked/spindles:grid relative">
       <div class="{{ $textContentStyle }} flex place-content-between gap-4 md:gap-8">
         <section class="space-y-4">
           <h1 class="{{ $titleStyle }}">Nix-powered CI</h1>
@@ -216,6 +224,10 @@
             <br>
             Support for Docker and MicroVM based runners coming soon!
           </p>
+          <a href="https://docs.tangled.org/spindles.html#pipelines" class="hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-black dark:text-white font-medium">
+            Learn more
+            {{ i "arrow-right" "size-4" }}
+          </a>
         </section>
         <div class="w-fit hidden md:flex items-center">
           <div class="size-32 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-900 -mr-4" >
@@ -227,10 +239,14 @@
         </div>
       </div>
       <div class="{{ $imgContentStyle }} flex items-end pb-0 overflow-hidden">
-        <div class="w-full h-full relative overflow-hidden">
-          <img src="https://assets.tangled.network/home-page-ci.png" class="h-full w-[200%] md:w-full object-cover object-left md:object-center" />
+        <div class="w-full md:w-full flex justify-center">
+          <img src="https://assets.tangled.network/home-page-ci.svg" class="w-[120%] md:w-full" />
         </div>
       </div>
+      <a href="https://docs.tangled.org/spindles.html#pipelines" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
+        Learn more
+        {{ i "arrow-right" "size-4" }}
+      </a>
     </div>
   </div>
 
@@ -328,14 +344,14 @@
       <div class="{{ $cardInnerStyle }}">
         {{ $moreLink := "https://tangled.org/core" }}
         <div class="{{ $contentStyle }}">
-          <h3 class="{{ $titleStyle }}">Free and Open-source</h3>
+          <h3 class="{{ $titleStyle }}">Free and open source</h3>
           <p class="{{ $descriptionStyle }}">
-            All of Tangled is open-source and built in the open!
-            Check out the <a class="underline" href="https://tangled.org/core">monorepo</a> and join in on the fun.
+            All of Tangled is open source and built with the community!
+            Check out the <a href="https://tangled.org/core">monorepo</a> and join in on the fun.
             <br>
             <br>
             We welcome contributions however big or small. You can start contributing by picking up a
-            <a class="underline" href="https://tangled.org/tangled.org/core/issues">good-first-issue</a>.
+            <a href="https://tangled.org/tangled.org/core/issues">good-first-issue</a>.
           </p>
           <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
             View source
@@ -364,11 +380,6 @@
           <h3 class="{{ $titleStyle }}">Social coding is back</h3>
           <p class="{{ $descriptionStyle }}">
             Discover trending projects, follow your friends and star your favourite repositories. Coding is better together!
-            <br>
-            <br>
-            You can use one account for all of the atmosphere. If you have
-            friends on Bluesky, you will find them on Tangled with the same
-            handle.
           </p>
           <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
             Explore timeline

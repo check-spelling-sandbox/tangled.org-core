@@ -8,11 +8,6 @@
 {{ end }}
 
 {{ define "content" }}
-     {{ if .LoggedInUser }}
-     {{ else }}
-       {{ template "timeline/fragments/hero" . }}
-     {{ end }}
-
     {{ template "timeline/fragments/goodfirstissues" . }}
     {{ template "timeline/fragments/trending" . }}
     {{ template "timeline/fragments/timeline" . }}

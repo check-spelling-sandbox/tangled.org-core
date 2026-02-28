@@ -1,6 +1,6 @@
 {{ define "timeline/fragments/preview" }}
   <div class="flex flex-col gap-4 overflow-hidden">
-    <div class="relative h-96 w-full">
+    <div class="relative h-fit md:h-96 w-full">
       <!-- left fade overlay (fixed on left edge) -->
       <div class="absolute left-0 top-0 h-full w-16 pointer-events-none z-10 bg-gradient-to-r from-white to-transparent dark:from-gray-900"></div>
 
@@ -8,6 +8,7 @@
       <div class="absolute right-0 top-0 h-full w-16 pointer-events-none z-10 bg-gradient-to-l from-white to-transparent dark:from-gray-900"></div>
 
       {{ template "marquee" $ }}
+      {{ template "marquee-mobile" $ }}
     </div>
   </div>
 {{ end }}
@@ -17,7 +18,7 @@
   {{ $prev := -1 }}
   {{ $w := mul (len .Timeline) 150 }}
 
-  <div class="absolute h-full flex animate-marquee">
+  <div class="absolute h-full hidden md:flex animate-marquee">
     <div class="relative h-full flex-shrink-0 bottom-4 border-b border-gray-200 dark:border-gray-700" style="width: {{ $w }}px;">
       {{ range $i, $e := .Timeline }}
         {{ $curr := randInt 4 }}
@@ -38,26 +39,56 @@
   </div>
 {{ end }}
 
+{{ define "marquee-mobile" }}
+  <div class="flex md:hidden flex-col gap-4 my-auto">
+    {{ range $rowIndex := list 0 1 2 3 }}
+      {{ $offset := mul (add $rowIndex 2) 10 }}
+      {{ if eq (mod $rowIndex 2) 0 }}
+        {{ $offset = mul $offset -1 }}
+      {{ end }}
+      <div class="flex gap-4 overflow-hidden" style="padding-left: {{ $offset }}px; ">
+        <div class="flex gap-4 animate-marquee">
+          {{ range $i, $e := $.Timeline }}
+            {{ if eq (mod $i 4) $rowIndex }}
+              <div class="flex-shrink-0">
+                {{ template "eventCard" (list $ $e) }}
+              </div>
+            {{ end }}
+          {{ end }}
+        </div>
+      </div>
+    {{ end }}
+  </div>
+{{ end }}
+
+{{ define "eventCard" }}
+  {{ $root := index . 0 }}
+  {{ $e := index . 1 }}
+  {{ with $e }}
+    <div class="flex flex-col divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-sm bg-white dark:bg-gray-800 drop-shadow-sm">
+      {{ if .Repo }}
+        {{ template "repoEvent" (list $root .) }}
+      {{ else if .RepoStar }}
+        {{ template "starEvent" (list $root .) }}
+      {{ else if .Follow }}
+        {{ template "followEvent" (list $root .) }}
+      {{ end }}
+    </div>
+  {{ end }}
+{{ end }}
+
 {{ define "timelineEvent" }}
   {{ $i := index . 0 }}
   {{ $e := index . 1 }}
   {{ $variance := randInt 10 }}
   {{ $offset := add (index . 2) $variance }}
   {{ $left := mul $i 175 }}
-  {{ with $e }}
-    <div
-      class="absolute left-0 flex flex-col divide-y divide-gray-200 dark:divide-gray-700 border border-gray-200 dark:border-gray-700 rounded-sm bg-white dark:bg-gray-800 drop-shadow-sm"
-      style="bottom: {{ $offset }}px; left: {{ $left }}px; transform: translateX(-50%); z-index: 5;"
-    >
-      {{ if .Repo }}
-        {{ template "repoEvent" (list $ .) }}
-      {{ else if .RepoStar }}
-        {{ template "starEvent" (list $ .) }}
-      {{ else if .Follow }}
-        {{ template "followEvent" (list $ .) }}
-      {{ end }}
-    </div>
-  {{ end }}
+  <div
+    class="absolute left-0"
+    style="bottom: {{ $offset }}px; left: {{ $left }}px; transform: translateX(-50%); z-index: 5;"
+  >
+    {{ template "eventCard" (list $ $e) }}
+  </div>
 
   <!-- vertical connector -->
   <div
