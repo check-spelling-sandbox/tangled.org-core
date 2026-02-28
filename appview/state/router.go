@@ -120,6 +120,7 @@ func (s *State) StandardRouter(mw *middleware.Middleware) http.Handler {
 	r.Handle("/static/*", s.pages.Static())
 
 	r.Get("/", s.HomeOrTimeline)
+	r.Get("/home", s.Home)
 	r.Get("/timeline", s.Timeline)
 	r.Get("/upgradeBanner", s.UpgradeBanner)
 

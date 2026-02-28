@@ -118,8 +118,10 @@ func (s *Signup) Router() http.Handler {
 func (s *Signup) signup(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		emailId := r.URL.Query().Get("id")
 		s.pages.Signup(w, pages.SignupParams{
 			CloudflareSiteKey: s.config.Cloudflare.TurnstileSiteKey,
+			EmailId:           emailId,
 		})
 	case http.MethodPost:
 		if s.cf == nil {

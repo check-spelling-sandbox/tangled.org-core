@@ -260,6 +260,7 @@ func (p *Pages) Login(w io.Writer, params LoginParams) error {
 
 type SignupParams struct {
 	CloudflareSiteKey string
+	EmailId           string
 }
 
 func (p *Pages) Signup(w io.Writer, params SignupParams) error {

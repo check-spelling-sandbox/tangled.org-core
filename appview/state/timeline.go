@@ -13,6 +13,8 @@ func (s *State) Home(w http.ResponseWriter, r *http.Request) {
 	// TODO: set this flag based on the UI
 	filtered := false
 
+	user := s.oauth.GetMultiAccountUser(r)
+
 	timeline, err := db.MakeTimeline(s.db, 50, "", filtered)
 	if err != nil {
 		s.logger.Error("failed to make timeline", "err", err)
@@ -26,7 +28,7 @@ func (s *State) Home(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(s.pages.Home(w, pages.TimelineParams{
-		LoggedInUser: nil,
+		LoggedInUser: user,
 		Timeline:     timeline,
 		BlueskyPosts: blueskyPosts,
 	}))
