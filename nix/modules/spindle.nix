@@ -86,10 +86,12 @@ in
               proxyAddr = mkOption {
                 type = types.str;
                 default = "http://127.0.0.1:8200";
+                description = "Address of the OpenBAO proxy server";
               };
               mount = mkOption {
                 type = types.str;
                 default = "spindle";
+                description = "Mount path in OpenBAO to read secrets from";
               };
             };
           };
