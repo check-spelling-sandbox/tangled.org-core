@@ -149,7 +149,7 @@
           <h1 class="{{ $titleStyle }}">Pull requests, reimagined</h1>
           <p class="text-gray-600 dark:text-gray-400">
           Break down large features into small, reviewable chunks. Stack pull
-          requests on top of each other and ship faster with better code
+          requests on top of each other and ship faster with round-based code
           reviews. Tangled natively supports stacking using Jujutsu.
           </p>
           <a href="https://blog.tangled.org/stacking" class="hover:no-underline inline-flex md:hidden items-center gap-2 text-sm text-black dark:text-white font-medium">
@@ -166,9 +166,12 @@
           </div>
         </div>
       </div>
-      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center">
-        <div class="w-full md:w-full flex justify-center">
-          <img src="https://assets.tangled.network/home-page-prs.svg" class="w-[120%] md:w-full" />
+      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center justify-center">
+        <div class="w-[120%] md:w-full flex">
+          <picture class="w-full">
+            <source srcset="https://assets.tangled.network/home-page-prs-dark.svg" media="(prefers-color-scheme: dark)" />
+            <img src="https://assets.tangled.network/home-page-prs-light.svg" class="w-full block" />
+          </picture>
         </div>
       </div>
       <a href="https://blog.tangled.org/stacking" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
@@ -201,9 +204,12 @@
           </div>
         </div>
       </div>
-      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center">
-        <div class="w-full md:w-full flex justify-center">
-          <img src="https://assets.tangled.network/home-page-self-host.svg" class="w-[120%] md:w-full" />
+      <div class="{{ $imgContentStyle }} relative overflow-hidden flex items-center justify-center">
+        <div class="w-[120%] md:w-full flex">
+          <picture class="w-full">
+            <source srcset="https://assets.tangled.network/home-page-self-host-dark.svg" media="(prefers-color-scheme: dark)" />
+            <img src="https://assets.tangled.network/home-page-self-host-light.svg" class="w-full block" />
+          </picture>
         </div>
       </div>
       <a href="https://docs.tangled.org/knot-self-hosting-guide.html#knot-self-hosting-guide" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
@@ -238,9 +244,12 @@
           </div>
         </div>
       </div>
-      <div class="{{ $imgContentStyle }} flex items-end pb-0 overflow-hidden">
-        <div class="w-full md:w-full flex justify-center">
-          <img src="https://assets.tangled.network/home-page-ci.svg" class="w-[120%] md:w-full" />
+      <div class="{{ $imgContentStyle }} flex items-end justify-center pb-0 overflow-hidden">
+        <div class="w-[120%] md:w-full flex">
+          <picture class="w-full">
+            <source srcset="https://assets.tangled.network/home-page-ci-dark.svg" media="(prefers-color-scheme: dark)" />
+            <img src="https://assets.tangled.network/home-page-ci-light.svg" class="w-full block" />
+          </picture>
         </div>
       </div>
       <a href="https://docs.tangled.org/spindles.html#pipelines" class="hover:no-underline hidden md:inline-flex absolute -bottom-6 -right-12 items-center gap-2 p-3 text-base btn">
@@ -289,7 +298,7 @@
         if (activeProgress) {
           activeProgress.classList.add('animate-progress');
         }
-      }, 5000);
+      }, 10000);
     });
   </script>
 {{ end }}
@@ -312,7 +321,7 @@
         <div class="{{ $contentStyle }}">
           <h3 class="{{ $titleStyle }}">Built on AT Protocol</h3>
           <p class="{{ $descriptionStyle }}">
-            AT Protocol enables federated code-collaboration. Submit
+            <a class="underline" href="https://atproto.com/">AT Protocol</a> enables federated code-collaboration. Submit
             pull-requests or bug-reports to any repository hosted on any
             server.
             <br>
@@ -347,11 +356,11 @@
           <h3 class="{{ $titleStyle }}">Free and open source</h3>
           <p class="{{ $descriptionStyle }}">
             All of Tangled is open source and built with the community!
-            Check out the <a href="https://tangled.org/core">monorepo</a> and join in on the fun.
+            Check out the <a class="underline" href="https://tangled.org/core">monorepo</a> and join in on the fun.
             <br>
             <br>
             We welcome contributions however big or small. You can start contributing by picking up a
-            <a href="https://tangled.org/tangled.org/core/issues">good-first-issue</a>.
+            <a class="underline" href="https://tangled.org/tangled.org/core/issues">good-first-issue</a>.
           </p>
           <a href="{{ $moreLink }}" class="{{ $linkMobileStyle }}">
             View source
@@ -513,8 +522,6 @@
     <p class="text-xl text-gray-600 dark:text-gray-300">
       You can participate in the Tangled network with an AT account. If you
       don't know what that is, you can sign up for one below.
-      <br>
-      <a href="https://docs.tangled.org/quick-start-guide.html#login-or-sign-up">Read more on the docs.</a>
     </p>
     <form class="flex gap-2 items-stretch w-full md:max-w-md mx-auto p-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded shadow-sm" method="get" action="/signup">
       <input

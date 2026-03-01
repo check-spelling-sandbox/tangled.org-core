@@ -8,19 +8,19 @@ import (
 )
 
 type BskyPost struct {
-	Rkey       string
-	Text       string
-	CreatedAt  time.Time
-	Langs      []string
-	Tags       []string
-	Embed      *apibsky.FeedDefs_PostView_Embed
-	Facets     []*apibsky.RichtextFacet
-	Labels     *apibsky.FeedPost_Labels
-	Reply      *apibsky.FeedPost_ReplyRef
-	LikeCount  int64
-	ReplyCount int64
+	Rkey        string
+	Text        string
+	CreatedAt   time.Time
+	Langs       []string
+	Tags        []string
+	Embed       *apibsky.FeedDefs_PostView_Embed
+	Facets      []*apibsky.RichtextFacet
+	Labels      *apibsky.FeedPost_Labels
+	Reply       *apibsky.FeedPost_ReplyRef
+	LikeCount   int64
+	ReplyCount  int64
 	RepostCount int64
-	QuoteCount int64
+	QuoteCount  int64
 }
 
 func NewBskyPostFromView(postView *apibsky.FeedDefs_PostView) (*BskyPost, error) {

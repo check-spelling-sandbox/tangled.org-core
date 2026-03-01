@@ -308,7 +308,7 @@
         }
 
         .animate-progress {
-          animation: progress 5s linear forwards;
+          animation: progress 10s linear forwards;
         }
 
         @keyframes fadeIn {
