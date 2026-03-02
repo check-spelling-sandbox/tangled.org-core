@@ -52,7 +52,7 @@ type Pages struct {
 }
 
 func NewPages(config *config.Config, res *idresolver.Resolver, database *db.DB, logger *slog.Logger) *Pages {
-	// initialized with safe defaults, can be overriden per use
+	// initialized with safe defaults, can be overridden per use
 	rctx := &markup.RenderContext{
 		IsDev:      config.Core.Dev,
 		Hostname:   config.Core.AppviewHost,
