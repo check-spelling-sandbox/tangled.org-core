@@ -113,8 +113,6 @@ func ingestRefUpdate(d *db.DB, enforcer *rbac.Enforcer, pc posthog.Client, notif
 		errWebhook = fmt.Errorf("failed to lookup repo for webhooks: %w", err)
 	} else if len(repos) == 1 {
 		notifier.Push(ctx, &repos[0], record.Ref, record.OldSha, record.NewSha, record.CommitterDid)
-	} else if len(repos) == 0 {
-		errWebhook = fmt.Errorf("no repo found for webhooks: %s/%s", record.RepoDid, record.RepoName)
 	}
 
 	errPunchcard := populatePunchcard(d, record)

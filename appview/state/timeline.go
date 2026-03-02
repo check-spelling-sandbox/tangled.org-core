@@ -1,7 +1,6 @@
 package state
 
 import (
-	"fmt"
 	"net/http"
 
 	"tangled.org/core/appview/db"
@@ -27,11 +26,11 @@ func (s *State) Home(w http.ResponseWriter, r *http.Request) {
 		s.logger.Error("failed to get bluesky posts", "err", err)
 	}
 
-	fmt.Println(s.pages.Home(w, pages.TimelineParams{
+	s.pages.Home(w, pages.TimelineParams{
 		LoggedInUser: user,
 		Timeline:     timeline,
 		BlueskyPosts: blueskyPosts,
-	}))
+	})
 }
 func (s *State) HomeOrTimeline(w http.ResponseWriter, r *http.Request) {
 	if s.oauth.GetMultiAccountUser(r) != nil {
