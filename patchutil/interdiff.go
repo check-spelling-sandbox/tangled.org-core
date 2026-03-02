@@ -288,7 +288,7 @@ func Interdiff(patch1, patch2 []*gitdiff.File) *InterdiffResult {
 			// we have f1 and f2, calculate interdiff
 			interdiffFile = interdiffFiles(f1, f2)
 		} else {
-			// only in patch 1, this change would have to be "inverted" to dissapear
+			// only in patch 1, this change would have to be "inverted" to disappear
 			// from patch 2, so we reverseDiff(f1)
 			reverseDiff(f1)
 
