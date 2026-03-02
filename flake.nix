@@ -20,7 +20,7 @@
       flake = false;
     };
     htmx-ws-src = {
-      # strange errors in consle that i can't really make out
+      # strange errors in console that i can't really make out
       # url = "https://unpkg.com/htmx.org@2.0.4/dist/ext/ws.js";
       url = "https://cdn.jsdelivr.net/npm/htmx-ext-ws@2.0.2";
       flake = false;
