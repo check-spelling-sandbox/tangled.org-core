@@ -438,7 +438,7 @@ func (rp *Repo) EditBaseSettings(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		l.Error("failed to perferom update-repo query", "err", err)
+		l.Error("failed to perform update-repo query", "err", err)
 		// failed to get record
 		rp.pages.Notice(w, noticeId, "Failed to save repository information, unable to save to PDS.")
 		return

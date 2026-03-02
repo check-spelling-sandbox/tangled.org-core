@@ -599,7 +599,7 @@ func (rp *Issues) EditIssueComment(w http.ResponseWriter, r *http.Request) {
 
 		_, err = db.AddIssueComment(tx, newComment)
 		if err != nil {
-			l.Error("failed to perferom update-description query", "err", err)
+			l.Error("failed to perform update-description query", "err", err)
 			rp.pages.Notice(w, "repo-notice", "Failed to update description, try again later.")
 			return
 		}
