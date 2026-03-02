@@ -315,7 +315,7 @@ func TestMockOpenBaoManager_RemoveSecret(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name:         "remove non-existent secret",
+			name:         "remove nonexistent secret",
 			setupSecrets: []UnlockedSecret{},
 			removeSecret: Secret[any]{
 				Key:  "API_KEY",

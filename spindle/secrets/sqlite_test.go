@@ -152,7 +152,7 @@ func TestSqliteManager_RemoveSecret(t *testing.T) {
 			expectError: nil,
 		},
 		{
-			name: "remove non-existent secret",
+			name: "remove nonexistent secret",
 			setupSecrets: []UnlockedSecret{
 				createTestSecret("did:plc:foo/repo", "api_key", "secret_value_123", "did:plc:example123"),
 			},
@@ -238,7 +238,7 @@ func TestSqliteManager_GetSecretsLocked(t *testing.T) {
 			expectError:   false,
 		},
 		{
-			name: "get secrets for non-existent repo",
+			name: "get secrets for nonexistent repo",
 			setupSecrets: []UnlockedSecret{
 				createTestSecret("did:plc:foo/repo", "key1", "value1", "did:plc:user1"),
 			},
@@ -345,7 +345,7 @@ func TestSqliteManager_GetSecretsUnlocked(t *testing.T) {
 			expectError: false,
 		},
 		{
-			name: "get unlocked secrets for non-existent repo",
+			name: "get unlocked secrets for nonexistent repo",
 			setupSecrets: []UnlockedSecret{
 				createTestSecret("did:plc:foo/repo", "key1", "value1", "did:plc:user1"),
 			},

@@ -282,7 +282,7 @@ func TestApplyPatch_MissingFile(t *testing.T) {
 
 	repo := h.initRepo()
 
-	// patch that modifies a non-existent file
+	// patch that modifies a nonexistent file
 	patch := `diff --git a/nonexistent.txt b/nonexistent.txt
 index 1234567..abcdefg 100644
 --- a/nonexistent.txt
@@ -350,7 +350,7 @@ func TestApplyPatch_MissingDirectory(t *testing.T) {
 
 	repo := h.initRepo()
 
-	// patch that adds a file in a non-existent directory
+	// patch that adds a file in a nonexistent directory
 	patch := `diff --git a/subdir/newfile.txt b/subdir/newfile.txt
 new file mode 100644
 index 0000000..ce01362
