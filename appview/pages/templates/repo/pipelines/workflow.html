@@ -12,7 +12,7 @@
     {{ block "sidebar" . }} {{ end }}
   </div>
   <div class="col-span-1 md:col-span-3">
-    <!-- TODO(boltless): explictly check for pipeline cancel permission -->
+    <!-- TODO(boltless): explicitly check for pipeline cancel permission -->
     {{ if $.RepoInfo.Roles.IsOwner }}
     <div class="flex justify-between mb-2">
       <div id="workflow-error" class="text-red-500 dark:text-red-400"></div>
