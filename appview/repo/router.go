@@ -55,7 +55,7 @@ func (rp *Repo) Router(mw *middleware.Middleware) http.Handler {
 	})
 
 	r.Route("/compare", func(r chi.Router) {
-		r.Get("/", rp.CompareNew) // start an new comparison
+		r.Get("/", rp.CompareNew) // start a new comparison
 
 		// we have to wildcard here since we want to support GitHub's compare syntax
 		//   /compare/{ref1}...{ref2}
