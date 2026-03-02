@@ -104,7 +104,7 @@ func (prefs *NotificationPreferences) ShouldNotify(t NotificationType) bool {
 	case NotificationTypeIssueClosed:
 		return prefs.IssueClosed
 	case NotificationTypeIssueReopen:
-		return prefs.IssueCreated // smae pref for now
+		return prefs.IssueCreated // same pref for now
 	case NotificationTypePullCreated:
 		return prefs.PullCreated
 	case NotificationTypePullCommented:
