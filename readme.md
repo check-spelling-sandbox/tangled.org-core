@@ -4,7 +4,7 @@ Hello Tanglers! This is the codebase for
 [Tangled](https://tangled.org)&mdash;a code collaboration platform built
 on the [AT Protocol](https://atproto.com).
 
-Read the introduction to Tangled [here](https://blog.tangled.org/intro). Join the
+Read the [introduction to Tangled](https://blog.tangled.org/intro). Join the
 [Discord](https://chat.tangled.org) or IRC at [#tangled on
 libera.chat](https://web.libera.chat/#tangled).
 
