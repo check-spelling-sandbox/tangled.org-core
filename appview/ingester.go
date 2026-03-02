@@ -1023,7 +1023,7 @@ func (i *Ingester) ingestLabelOp(e *jmodels.Event) error {
 			}
 			repo = i[0].Repo
 		default:
-			return fmt.Errorf("unsupport label subject: %s", collection)
+			return fmt.Errorf("unsupported label subject: %s", collection)
 		}
 
 		actx, err := db.NewLabelApplicationCtx(ddb, orm.FilterIn("at_uri", repo.Labels))
