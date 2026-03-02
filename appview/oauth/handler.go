@@ -192,7 +192,7 @@ func (o *OAuth) addToDefaultKnot(did string) {
 		return
 	}
 
-	l.Debug("successfully addeds to default Knot")
+	l.Debug("successfully added to default Knot")
 }
 
 func (o *OAuth) ensureTangledProfile(sessData *oauth.ClientSessionData) {
