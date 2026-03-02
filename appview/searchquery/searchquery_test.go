@@ -250,3 +250,26 @@ func TestParseDoubleHyphen(t *testing.T) {
 	assert.Equal(t, "-label", items[0].Key)
 	assert.Equal(t, "bug", items[0].Value)
 }
+
+func TestDynamicTags(t *testing.T) {
+	q := Parse("state:open label:bug priority:high severity:critical -priority:low author:alice -severity:minor keyword")
+
+	// Known tags are not included
+	dynamic := q.GetDynamicTags()
+	assert.Equal(t, []string{"priority:high", "severity:critical"}, dynamic)
+
+	negated := q.GetNegatedDynamicTags()
+	assert.Equal(t, []string{"priority:low", "severity:minor"}, negated)
+
+	// Known tags still work as before
+	assert.Equal(t, []string{"bug"}, q.GetAll("label"))
+	val := q.Get("state")
+	assert.NotNil(t, val)
+	assert.Equal(t, "open", *val)
+}
+
+func TestDynamicTagsEmpty(t *testing.T) {
+	q := Parse("state:open label:bug author:alice keyword")
+	assert.Equal(t, 0, len(q.GetDynamicTags()))
+	assert.Equal(t, 0, len(q.GetNegatedDynamicTags()))
+}

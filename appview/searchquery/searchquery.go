@@ -158,6 +158,39 @@ func (q *Query) Has(key string) bool {
 	return q.Get(key) != nil
 }
 
+// KnownTags is the set of tag keys with special system-defined handling.
+// Any tag:value pair whose key is not in this set is treated as a dynamic
+// label filter.
+var KnownTags = map[string]bool{
+	"state":  true,
+	"author": true,
+	"label":  true,
+}
+
+// GetDynamicTags returns composite "key:value" strings for all non-negated
+// tag:value items whose key is not a known system tag.
+func (q *Query) GetDynamicTags() []string {
+	var result []string
+	for _, item := range q.items {
+		if item.Kind == KindTagValue && !item.Negated && !KnownTags[item.Key] {
+			result = append(result, item.Key+":"+item.Value)
+		}
+	}
+	return result
+}
+
+// GetNegatedDynamicTags returns composite "key:value" strings for all negated
+// tag:value items whose key is not a known system tag.
+func (q *Query) GetNegatedDynamicTags() []string {
+	var result []string
+	for _, item := range q.items {
+		if item.Kind == KindTagValue && item.Negated && !KnownTags[item.Key] {
+			result = append(result, item.Key+":"+item.Value)
+		}
+	}
+	return result
+}
+
 func (q *Query) Set(key, value string) {
 	raw := key + ":" + value
 	found := false
