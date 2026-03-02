@@ -317,7 +317,7 @@ func (mw Middleware) ResolveIssue(next http.Handler) http.Handler {
 // a 404 like tangled.sh/oppi.li/go-git/v5
 //
 // we're keeping the tangled.sh go-import tag too to maintain backward
-// compatiblity for modules that still point there. they will be redirected
+// compatibility for modules that still point there. they will be redirected
 // to fetch source from tangled.org
 func (mw Middleware) GoImport() middlewareFunc {
 	return func(next http.Handler) http.Handler {
