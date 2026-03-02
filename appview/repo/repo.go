@@ -1130,7 +1130,7 @@ func (rp *Repo) ForkRepo(w http.ResponseWriter, r *http.Request) {
 		}
 		defer rollback()
 
-		// TODO: this could coordinate better with the knot to recieve a clone status
+		// TODO: this could coordinate better with the knot to receive a clone status
 		client, err := rp.oauth.ServiceClient(
 			r,
 			oauth.WithService(targetKnot),
