@@ -18,7 +18,7 @@ import (
 	"github.com/blevesearch/bleve/v2/search/query"
 	"tangled.org/core/appview/db"
 	"tangled.org/core/appview/indexer/base36"
-	"tangled.org/core/appview/indexer/bleve"
+	bleveutil "tangled.org/core/appview/indexer/bleve"
 	"tangled.org/core/appview/models"
 	"tangled.org/core/appview/pagination"
 	tlog "tangled.org/core/log"
@@ -31,7 +31,7 @@ const (
 	unicodeNormalizeName = "uicodeNormalize"
 
 	// Bump this when the index mapping changes to trigger a rebuild.
-	issueIndexerVersion = 2
+	issueIndexerVersion = 3
 )
 
 type Indexer struct {
@@ -89,6 +89,7 @@ func generateIssueIndexMapping() (mapping.IndexMapping, error) {
 	docMapping.AddFieldMappingsAt("is_open", boolFieldMapping)
 	docMapping.AddFieldMappingsAt("author_did", keywordFieldMapping)
 	docMapping.AddFieldMappingsAt("labels", keywordFieldMapping)
+	docMapping.AddFieldMappingsAt("label_values", keywordFieldMapping)
 
 	err := mapping.AddCustomTokenFilter(unicodeNormalizeName, map[string]any{
 		"type": unicodenorm.Name,
@@ -183,28 +184,30 @@ func PopulateIndexer(ctx context.Context, ix *Indexer, e db.Execer) error {
 }
 
 type issueData struct {
-	ID        int64    `json:"id"`
-	RepoAt    string   `json:"repo_at"`
-	IssueID   int      `json:"issue_id"`
-	Title     string   `json:"title"`
-	Body      string   `json:"body"`
-	IsOpen    bool     `json:"is_open"`
-	AuthorDid string   `json:"author_did"`
-	Labels    []string `json:"labels"`
+	ID          int64    `json:"id"`
+	RepoAt      string   `json:"repo_at"`
+	IssueID     int      `json:"issue_id"`
+	Title       string   `json:"title"`
+	Body        string   `json:"body"`
+	IsOpen      bool     `json:"is_open"`
+	AuthorDid   string   `json:"author_did"`
+	Labels      []string `json:"labels"`
+	LabelValues []string `json:"label_values"`
 
 	Comments []IssueCommentData `json:"comments"`
 }
 
 func makeIssueData(issue *models.Issue) *issueData {
 	return &issueData{
-		ID:        issue.Id,
-		RepoAt:    issue.RepoAt.String(),
-		IssueID:   issue.IssueId,
-		Title:     issue.Title,
-		Body:      issue.Body,
-		IsOpen:    issue.Open,
-		AuthorDid: issue.Did,
-		Labels:    issue.Labels.LabelNames(),
+		ID:          issue.Id,
+		RepoAt:      issue.RepoAt.String(),
+		IssueID:     issue.IssueId,
+		Title:       issue.Title,
+		Body:        issue.Body,
+		IsOpen:      issue.Open,
+		AuthorDid:   issue.Did,
+		Labels:      issue.Labels.LabelNames(),
+		LabelValues: issue.Labels.LabelNameValues(),
 	}
 }
 
@@ -284,12 +287,20 @@ func (ix *Indexer) Search(ctx context.Context, opts models.IssueSearchOptions) (
 		musts = append(musts, bleveutil.KeywordFieldQuery("labels", label))
 	}
 
-	if opts.NegatedAuthorDid != "" {
-		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("author_did", opts.NegatedAuthorDid))
+	for _, did := range opts.NegatedAuthorDids {
+		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("author_did", did))
 	}
 
 	for _, label := range opts.NegatedLabels {
 		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("labels", label))
+	}
+
+	for _, lv := range opts.LabelValues {
+		musts = append(musts, bleveutil.KeywordFieldQuery("label_values", lv))
+	}
+
+	for _, lv := range opts.NegatedLabelValues {
+		mustNots = append(mustNots, bleveutil.KeywordFieldQuery("label_values", lv))
 	}
 
 	indexerQuery := bleve.NewBooleanQuery()

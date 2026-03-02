@@ -3,6 +3,7 @@ package issues_indexer
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/blevesearch/bleve/v2"
@@ -38,11 +39,23 @@ func setupTestIndexer(t *testing.T) (*Indexer, func()) {
 
 func boolPtr(b bool) *bool { return &b }
 
-func makeLabelState(labels ...string) models.LabelState {
+// makeLabelState creates a LabelState for testing. Each entry is either
+// "name" (null-type label) or "name=val" (valued label).
+func makeLabelState(entries ...string) models.LabelState {
 	state := models.NewLabelState()
-	for _, label := range labels {
-		state.Inner()[label] = make(map[string]struct{})
-		state.SetName(label, label)
+	for _, entry := range entries {
+		if eqIdx := strings.Index(entry, "="); eqIdx > 0 {
+			name := entry[:eqIdx]
+			val := entry[eqIdx+1:]
+			if state.Inner()[name] == nil {
+				state.Inner()[name] = make(map[string]struct{})
+			}
+			state.Inner()[name][val] = struct{}{}
+			state.SetName(name, name)
+		} else {
+			state.Inner()[entry] = make(map[string]struct{})
+			state.SetName(entry, entry)
+		}
 	}
 	return state
 }
@@ -261,4 +274,71 @@ func TestSearchNoResults(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, uint64(0), result.Total)
 	assert.Empty(t, result.Hits)
+}
+
+func TestSearchLabelValues(t *testing.T) {
+	ix, cleanup := setupTestIndexer(t)
+	defer cleanup()
+
+	ctx := context.Background()
+
+	err := ix.Index(ctx,
+		models.Issue{Id: 1, RepoAt: "at://did:plc:test/sh.tangled.repo/abc", Title: "High priority bug", Body: "Urgent", Open: true, Did: "did:plc:alice",
+			Labels: makeLabelState("bug", "priority=high")},
+		models.Issue{Id: 2, RepoAt: "at://did:plc:test/sh.tangled.repo/abc", Title: "Low priority feature", Body: "Nice to have", Open: true, Did: "did:plc:bob",
+			Labels: makeLabelState("feature", "priority=low")},
+		models.Issue{Id: 3, RepoAt: "at://did:plc:test/sh.tangled.repo/abc", Title: "High priority feature", Body: "Important", Open: true, Did: "did:plc:alice",
+			Labels: makeLabelState("feature", "priority=high")},
+	)
+	require.NoError(t, err)
+
+	opts := func() models.IssueSearchOptions {
+		return models.IssueSearchOptions{
+			RepoAt: "at://did:plc:test/sh.tangled.repo/abc",
+			IsOpen: boolPtr(true),
+			Page:   pagination.Page{Limit: 10},
+		}
+	}
+
+	o := opts()
+	o.LabelValues = []string{"priority:high"}
+	result, err := ix.Search(ctx, o)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(2), result.Total)
+	assert.Contains(t, result.Hits, int64(1))
+	assert.Contains(t, result.Hits, int64(3))
+
+	o = opts()
+	o.LabelValues = []string{"priority:low"}
+	result, err = ix.Search(ctx, o)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(1), result.Total)
+	assert.Contains(t, result.Hits, int64(2))
+
+	// Combined: plain label + label value
+	o = opts()
+	o.Labels = []string{"feature"}
+	o.LabelValues = []string{"priority:high"}
+	result, err = ix.Search(ctx, o)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(1), result.Total)
+	assert.Contains(t, result.Hits, int64(3))
+
+	// Negated label value
+	o = opts()
+	o.NegatedLabelValues = []string{"priority:low"}
+	result, err = ix.Search(ctx, o)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(2), result.Total)
+	assert.Contains(t, result.Hits, int64(1))
+	assert.Contains(t, result.Hits, int64(3))
+
+	// Label value + negated plain label
+	o = opts()
+	o.LabelValues = []string{"priority:high"}
+	o.NegatedLabels = []string{"feature"}
+	result, err = ix.Search(ctx, o)
+	require.NoError(t, err)
+	assert.Equal(t, uint64(1), result.Total)
+	assert.Contains(t, result.Hits, int64(1))
 }

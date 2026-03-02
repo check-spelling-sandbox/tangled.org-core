@@ -314,6 +314,27 @@ func (s LabelState) LabelNames() []string {
 	return result
 }
 
+// LabelNameValues returns composite "name:value" strings for all labels
+// that have non-empty values.
+func (s LabelState) LabelNameValues() []string {
+	var result []string
+	for key, valset := range s.inner {
+		if valset == nil {
+			continue
+		}
+		name, ok := s.names[key]
+		if !ok {
+			continue
+		}
+		for val := range valset {
+			if val != "" {
+				result = append(result, name+":"+val)
+			}
+		}
+	}
+	return result
+}
+
 func (s LabelState) Inner() map[string]set {
 	return s.inner
 }
