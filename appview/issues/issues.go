@@ -333,7 +333,7 @@ func (rp *Issues) CloseIssue(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		l.Error("user is not permitted to close issue")
-		http.Error(w, "for biden", http.StatusUnauthorized)
+		http.Error(w, "forbidden", http.StatusUnauthorized)
 		return
 	}
 }

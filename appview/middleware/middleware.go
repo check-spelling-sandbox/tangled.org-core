@@ -119,7 +119,7 @@ func (mw Middleware) knotRoleMiddleware(group string) middlewareFunc {
 			if actor == nil {
 				// we need a logged in user
 				log.Printf("not logged in, redirecting")
-				http.Error(w, "Forbiden", http.StatusUnauthorized)
+				http.Error(w, "Forbidden", http.StatusUnauthorized)
 				return
 			}
 			domain := chi.URLParam(r, "domain")
@@ -131,7 +131,7 @@ func (mw Middleware) knotRoleMiddleware(group string) middlewareFunc {
 			ok, err := mw.enforcer.E.HasGroupingPolicy(actor.Active.Did, group, domain)
 			if err != nil || !ok {
 				log.Printf("%s does not have perms of a %s in domain %s", actor.Active.Did, group, domain)
-				http.Error(w, "Forbiden", http.StatusUnauthorized)
+				http.Error(w, "Forbidden", http.StatusUnauthorized)
 				return
 			}
 
@@ -152,7 +152,7 @@ func (mw Middleware) RepoPermissionMiddleware(requiredPerm string) middlewareFun
 			if actor == nil {
 				// we need a logged in user
 				log.Printf("not logged in, redirecting")
-				http.Error(w, "Forbiden", http.StatusUnauthorized)
+				http.Error(w, "Forbidden", http.StatusUnauthorized)
 				return
 			}
 			f, err := mw.repoResolver.Resolve(r)
@@ -164,7 +164,7 @@ func (mw Middleware) RepoPermissionMiddleware(requiredPerm string) middlewareFun
 			ok, err := mw.enforcer.E.Enforce(actor.Active.Did, f.Knot, f.DidSlashRepo(), requiredPerm)
 			if err != nil || !ok {
 				log.Printf("%s does not have perms of a %s in repo %s", actor.Active.Did, requiredPerm, f.DidSlashRepo())
-				http.Error(w, "Forbiden", http.StatusUnauthorized)
+				http.Error(w, "Forbidden", http.StatusUnauthorized)
 				return
 			}
 

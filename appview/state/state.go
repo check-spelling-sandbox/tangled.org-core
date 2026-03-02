@@ -623,7 +623,7 @@ func fetchBskyPosts(ctx context.Context, res *idresolver.Resolver, config *confi
 
 	session, err := oauth.CreateAppPasswordSession(res, config.Core.AppPassword, consts.TangledDid)
 	if err != nil {
-		logger.Error("failed to create appassword session... skipping fetch", "err", err)
+		logger.Error("failed to create app password session... skipping fetch", "err", err)
 		return
 	}
 
