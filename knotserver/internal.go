@@ -396,7 +396,7 @@ func (h *InternalHandle) emitCompareLink(
 		return nil
 	}
 
-	// pushing a tag, don't prompt the user the open a PR
+	// pushing a tag, don't prompt the user to open a PR
 	if pushedRef.IsTag() {
 		return nil
 	}
