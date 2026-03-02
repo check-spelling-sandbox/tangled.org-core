@@ -372,7 +372,7 @@
             {{ $fullRepo = $root.RepoInfo.FullName }}
           {{ end }}
 
-          <!-- if $fullRepo was resolved, link to it, otherwise just span without a link -->
+          <!-- if $fullRepo was resolved, link to it; otherwise, just span without a link -->
           {{ if $fullRepo }}
             <a href="/{{ $fullRepo }}/commit/{{ .SHA }}" class="font-mono text-gray-600 dark:text-gray-300">{{ slice .SHA 0 8 }}</a>
           {{ else }}
