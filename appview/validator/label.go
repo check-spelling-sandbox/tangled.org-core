@@ -114,7 +114,7 @@ func (v *Validator) ValidateLabelOp(labelDef *models.LabelDefinition, repo *mode
 		return fmt.Errorf("failed to enforce permissions: %w", err)
 	}
 	if !ok {
-		return fmt.Errorf("unauhtorized label operation")
+		return fmt.Errorf("unauthorized label operation")
 	}
 
 	expectedKey := labelDef.AtUri().String()
