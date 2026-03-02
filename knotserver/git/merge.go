@@ -232,7 +232,7 @@ func (g *GitRepo) applyMailbox(patchData string) error {
 func (g *GitRepo) applySingleMailbox(singlePatch types.FormatPatch) (plumbing.Hash, error) {
 	tmpPatch, err := createTemp(singlePatch.Raw)
 	if err != nil {
-		return plumbing.ZeroHash, fmt.Errorf("failed to create temporary patch file for singluar mailbox patch: %w", err)
+		return plumbing.ZeroHash, fmt.Errorf("failed to create temporary patch file for singular mailbox patch: %w", err)
 	}
 
 	var stderr bytes.Buffer
