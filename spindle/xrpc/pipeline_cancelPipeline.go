@@ -80,7 +80,7 @@ func (x *Xrpc) CancelPipeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, engine := range x.Engines {
-		l.Debug("destorying workflow", "wid", wid)
+		l.Debug("destroying workflow", "wid", wid)
 		err = engine.DestroyWorkflow(r.Context(), wid)
 		if err != nil {
 			fail(xrpcerr.GenericError(fmt.Errorf("failed to destroy workflow: %w", err)))
