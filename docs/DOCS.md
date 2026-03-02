@@ -1539,7 +1539,7 @@ you are using Apple Silicon).
 >
 > to store the builder VM in a temporary dir.
 >
-> You should read and follow [all the other intructions][darwin builder vm] to
+> You should read and follow [all the other instructions][darwin builder vm] to
 > avoid subtle problems.
 
 Alternatively, you can use any other method to set up a
