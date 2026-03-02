@@ -90,7 +90,7 @@ var GitError = func(e error) XrpcError {
 var AccessControlError = func(d string) XrpcError {
 	return NewXrpcError(
 		WithTag("AccessControl"),
-		WithError(fmt.Errorf("DID does not have sufficent access permissions for this operation: %s", d)),
+		WithError(fmt.Errorf("DID does not have sufficient access permissions for this operation: %s", d)),
 	)
 }
 
