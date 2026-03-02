@@ -827,60 +827,59 @@ func (rp *Issues) RepoIssues(w http.ResponseWriter, r *http.Request) {
 		query.Set("state", "open")
 	}
 
-	var authorDid string
-	if authorHandle := query.Get("author"); authorHandle != nil {
-		identity, err := rp.idResolver.ResolveIdent(r.Context(), *authorHandle)
+	resolve := func(ctx context.Context, ident string) (string, error) {
+		id, err := rp.idResolver.ResolveIdent(ctx, ident)
 		if err != nil {
-			l.Debug("failed to resolve author handle", "handle", *authorHandle, "err", err)
-		} else {
-			authorDid = identity.DID.String()
+			return "", err
 		}
+		return id.DID.String(), nil
 	}
 
-	var negatedAuthorDid string
-	if negatedAuthors := query.GetAllNegated("author"); len(negatedAuthors) > 0 {
-		identity, err := rp.idResolver.ResolveIdent(r.Context(), negatedAuthors[0])
-		if err != nil {
-			l.Debug("failed to resolve negated author handle", "handle", negatedAuthors[0], "err", err)
-		} else {
-			negatedAuthorDid = identity.DID.String()
-		}
-	}
+	authorDid, negatedAuthorDids := searchquery.ResolveAuthor(r.Context(), query, resolve, l)
 
 	labels := query.GetAll("label")
 	negatedLabels := query.GetAllNegated("label")
+	labelValues := query.GetDynamicTags()
+	negatedLabelValues := query.GetNegatedDynamicTags()
 
-	var keywords, negatedKeywords []string
-	var phrases, negatedPhrases []string
-	for _, item := range query.Items() {
-		switch item.Kind {
-		case searchquery.KindKeyword:
-			if item.Negated {
-				negatedKeywords = append(negatedKeywords, item.Value)
-			} else {
-				keywords = append(keywords, item.Value)
+	// resolve DID-format label values: if a dynamic tag's label
+	// definition has format "did", resolve the handle to a DID
+	if len(labelValues) > 0 || len(negatedLabelValues) > 0 {
+		labelDefs, err := db.GetLabelDefinitions(
+			rp.db,
+			orm.FilterIn("at_uri", f.Labels),
+			orm.FilterContains("scope", tangled.RepoIssueNSID),
+		)
+		if err == nil {
+			didLabels := make(map[string]bool)
+			for _, def := range labelDefs {
+				if def.ValueType.Format == models.ValueTypeFormatDid {
+					didLabels[def.Name] = true
+				}
 			}
-		case searchquery.KindQuoted:
-			if item.Negated {
-				negatedPhrases = append(negatedPhrases, item.Value)
-			} else {
-				phrases = append(phrases, item.Value)
-			}
+			labelValues = searchquery.ResolveDIDLabelValues(r.Context(), labelValues, didLabels, resolve, l)
+			negatedLabelValues = searchquery.ResolveDIDLabelValues(r.Context(), negatedLabelValues, didLabels, resolve, l)
+		} else {
+			l.Debug("failed to fetch label definitions for DID resolution", "err", err)
 		}
 	}
 
+	tf := searchquery.ExtractTextFilters(query)
+
 	searchOpts := models.IssueSearchOptions{
-		Keywords:         keywords,
-		Phrases:          phrases,
-		RepoAt:           f.RepoAt().String(),
-		IsOpen:           isOpen,
-		AuthorDid:        authorDid,
-		Labels:           labels,
-		NegatedKeywords:  negatedKeywords,
-		NegatedPhrases:   negatedPhrases,
-		NegatedLabels:    negatedLabels,
-		NegatedAuthorDid: negatedAuthorDid,
-		Page:             page,
+		Keywords:           tf.Keywords,
+		Phrases:            tf.Phrases,
+		RepoAt:             f.RepoAt().String(),
+		IsOpen:             isOpen,
+		AuthorDid:          authorDid,
+		Labels:             labels,
+		LabelValues:        labelValues,
+		NegatedKeywords:    tf.NegatedKeywords,
+		NegatedPhrases:     tf.NegatedPhrases,
+		NegatedLabels:      negatedLabels,
+		NegatedLabelValues: negatedLabelValues,
+		NegatedAuthorDids:  negatedAuthorDids,
+		Page:               page,
 	}
 
 	totalIssues := 0
