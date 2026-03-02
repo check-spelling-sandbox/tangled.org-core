@@ -284,7 +284,7 @@ func (p *Pages) funcMap() template.FuncMap {
 			return template.HTML(sanitized)
 		},
 		"code": func(content, path string) string {
-			var style *chroma.Style = styles.Get("catpuccin-latte")
+			var style *chroma.Style = styles.Get("catppuccin-latte")
 			formatter := chromahtml.New(
 				chromahtml.InlineCode(false),
 				chromahtml.WithLineNumbers(true),
