@@ -2310,7 +2310,7 @@ func (s *Pulls) MergePull(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		log.Println("failed to start transcation", err)
+		log.Println("failed to start transaction", err)
 		s.pages.Notice(w, "pull-merge-error", "Failed to merge pull request. Try again later.")
 		return
 	}
