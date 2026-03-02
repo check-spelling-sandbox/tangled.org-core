@@ -89,7 +89,11 @@ func (s *State) profile(r *http.Request) (*pages.ProfileCard, error) {
 		followStatus = db.GetFollowStatus(s.db, loggedInUser.Active.Did, did)
 	}
 
-	showPunchcard := s.shouldShowPunchcard(did, loggedInUser.Did())
+	var loggedInDid string
+	if loggedInUser != nil {
+		loggedInDid = loggedInUser.Did()
+	}
+	showPunchcard := s.shouldShowPunchcard(did, loggedInDid)
 
 	var punchcard *models.Punchcard
 	if showPunchcard {
