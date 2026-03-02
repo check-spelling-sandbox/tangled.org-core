@@ -153,7 +153,7 @@ func reverseDiff(file *gitdiff.File) {
 	file.BinaryFragment, file.ReverseBinaryFragment = file.ReverseBinaryFragment, file.BinaryFragment
 
 	for _, fragment := range file.TextFragments {
-		// swap postions
+		// swap positions
 		fragment.OldPosition, fragment.NewPosition = fragment.NewPosition, fragment.OldPosition
 		fragment.OldLines, fragment.NewLines = fragment.NewLines, fragment.OldLines
 		fragment.LinesAdded, fragment.LinesDeleted = fragment.LinesDeleted, fragment.LinesAdded
