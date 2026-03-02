@@ -487,11 +487,11 @@ func GetPullComments(e Execer, filters ...orm.Filter) ([]models.PullComment, err
 
 	// collect references for each comments
 	commentAts := slices.Collect(maps.Keys(commentMap))
-	allReferencs, err := GetReferencesAll(e, orm.FilterIn("from_at", commentAts))
+	allReferences, err := GetReferencesAll(e, orm.FilterIn("from_at", commentAts))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query reference_links: %w", err)
 	}
-	for commentAt, references := range allReferencs {
+	for commentAt, references := range allReferences {
 		if comment, ok := commentMap[commentAt.String()]; ok {
 			comment.References = references
 		}

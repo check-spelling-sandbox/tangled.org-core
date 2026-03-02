@@ -252,11 +252,11 @@ func GetIssuesPaginated(e Execer, page pagination.Page, filters ...orm.Filter) (
 	}
 
 	// collect references for each issue
-	allReferencs, err := GetReferencesAll(e, orm.FilterIn("from_at", issueAts))
+	allReferences, err := GetReferencesAll(e, orm.FilterIn("from_at", issueAts))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query reference_links: %w", err)
 	}
-	for issueAt, references := range allReferencs {
+	for issueAt, references := range allReferences {
 		if issue, ok := issueMap[issueAt.String()]; ok {
 			issue.References = references
 		}
@@ -452,11 +452,11 @@ func GetIssueComments(e Execer, filters ...orm.Filter) ([]models.IssueComment, e
 
 	// collect references for each comments
 	commentAts := slices.Collect(maps.Keys(commentMap))
-	allReferencs, err := GetReferencesAll(e, orm.FilterIn("from_at", commentAts))
+	allReferences, err := GetReferencesAll(e, orm.FilterIn("from_at", commentAts))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query reference_links: %w", err)
 	}
-	for commentAt, references := range allReferencs {
+	for commentAt, references := range allReferences {
 		if comment, ok := commentMap[commentAt.String()]; ok {
 			comment.References = references
 		}
