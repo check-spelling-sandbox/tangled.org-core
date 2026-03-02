@@ -54,7 +54,7 @@ func (x *Xrpc) DeleteRepo(w http.ResponseWriter, r *http.Request) {
 		Host: ident.PDSEndpoint(),
 	}
 
-	// ensure that the record does not exists
+	// ensure that the record does not exist
 	_, err = comatproto.RepoGetRecord(r.Context(), &xrpcc, "", tangled.RepoNSID, actorDid.String(), rkey)
 	if err == nil {
 		fail(xrpcerr.RecordExistsError(rkey))
