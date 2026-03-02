@@ -69,7 +69,7 @@ func StartWorkflows(l *slog.Logger, vault secrets.Manager, cfg *config.Config, d
 				if err != nil {
 					// TODO(winter): Should this always set StatusFailed?
 					// In the original, we only do in a subset of cases.
-					l.Error("setting up worklow", "wid", wid, "err", err)
+					l.Error("setting up workflow", "wid", wid, "err", err)
 
 					destroyErr := eng.DestroyWorkflow(ctx, wid)
 					if destroyErr != nil {
