@@ -16,7 +16,7 @@ import (
 
 // FindReferences collects all links referencing tangled-related objects
 // like issues, PRs, comments or even @-mentions
-// This funciton doesn't actually check for the existence of records in the DB
+// This function doesn't actually check for the existence of records in the DB
 // or the PDS; it merely returns a list of what are presumed to be references.
 func FindReferences(host string, source string) ([]string, []models.ReferenceLink) {
 	var (
