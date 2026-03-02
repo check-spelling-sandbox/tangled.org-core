@@ -1402,7 +1402,7 @@ func (s *Pulls) createStackedPullRequest(
 		return
 	}
 
-	//  must have atleast 1 patch to begin with
+	//  must have at least 1 patch to begin with
 	if len(formatPatches) == 0 {
 		log.Println("empty patches")
 		s.pages.Notice(w, "pull", "No patches found in the generated format-patch.")
@@ -2496,7 +2496,7 @@ func (s *Pulls) newStack(ctx context.Context, repo *models.Repo, user *oauth.Mul
 		return nil, fmt.Errorf("Failed to extract patches: %v", err)
 	}
 
-	//  must have atleast 1 patch to begin with
+	//  must have at least 1 patch to begin with
 	if len(formatPatches) == 0 {
 		return nil, fmt.Errorf("No patches found in the generated format-patch.")
 	}

@@ -231,7 +231,7 @@ func (rp *Repo) generalSettings(w http.ResponseWriter, r *http.Request) {
 		subscribedLabels[l] = struct{}{}
 	}
 
-	// if there is atleast 1 unsubbed default label, show the "subscribe all" button,
+	// if there is at least 1 unsubbed default label, show the "subscribe all" button,
 	// if all default labels are subbed, show the "unsubscribe all" button
 	shouldSubscribeAll := false
 	for _, dl := range defaultLabels {

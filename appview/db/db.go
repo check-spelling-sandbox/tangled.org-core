@@ -141,7 +141,7 @@ func Make(ctx context.Context, dbPath string) (*DB, error) {
 			foreign key (repo_at) references repos(at_uri) on delete cascade
 		);
 
-		-- every pull must have atleast 1 submission: the initial submission
+		-- every pull must have at least 1 submission: the initial submission
 		create table if not exists pull_submissions (
 			-- identifiers
 			id integer primary key autoincrement,

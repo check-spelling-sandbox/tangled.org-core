@@ -338,7 +338,7 @@ func (o *OAuth) ServiceClient(r *http.Request, os ...ServiceClientOpt) (*xrpc.Cl
 		return nil, err
 	}
 
-	// force expiry to atleast 60 seconds in the future
+	// force expiry to at least 60 seconds in the future
 	sixty := time.Now().Unix() + 60
 	if opts.exp < sixty {
 		opts.exp = sixty
